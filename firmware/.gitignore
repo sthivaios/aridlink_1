@@ -1,5 +1,8 @@
 .idea
 
+build
+
 sdkconfig
+sdkconfig.old
 
 certs/

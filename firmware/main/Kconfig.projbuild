@@ -1,0 +1,15 @@
+menu "AridLink Configuration"
+
+    config ARIDLINK_WIFI_SSID
+        string "WiFi SSID"
+        default ""
+
+    config ARIDLINK_WIFI_PASSWORD
+        string "WiFi Password"
+        default ""
+
+    config ARIDLINK_AWS_ENDPOINT
+        string "AWS IoT Endpoint"
+        default ""
+
+endmenu
