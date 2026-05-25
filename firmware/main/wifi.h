@@ -5,7 +5,7 @@
  *
  * AridLink 1 Firmware is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as published
- * by the Free  Software Foundation, either version 3 of the License, or
+ * by the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * AridLink 1 Firmware is distributed in the hope that it will be useful,
@@ -17,24 +17,13 @@
  * along with AridLink 1 Firmware. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "esp_event.h"
-#include "esp_log.h"
-#include "esp_netif.h"
-#include "nvs_flash.h"
-#include "wifi.h"
+#ifndef ARIDLINK_WIFI_H
+#define ARIDLINK_WIFI_H
 
-static const char *TAG = "main_pro_max";
+#define WIFI_CONNECTED_BIT BIT0
+#define WIFI_FAIL_BIT      BIT1
+#define MAX_WIFI_RETRIES 3
 
-void app_main(void)
-{
-  //Initialize NVS
-  esp_err_t ret = nvs_flash_init();
-  if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-    ESP_ERROR_CHECK(nvs_flash_erase());
-    ret = nvs_flash_init();
-  }
-  ESP_ERROR_CHECK(ret);
+void wifi_init_sta(void);
 
-  // init wifi
-  wifi_init_sta();
-}
+#endif // ARIDLINK_WIFI_H
