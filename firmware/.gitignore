@@ -1,8 +1,13 @@
+# misc
 .idea
 
+# build and components
 build
+managed_components
 
+# sdkconfigs
 sdkconfig
 sdkconfig.old
 
+# aws iot certificates
 certs/

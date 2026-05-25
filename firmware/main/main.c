@@ -20,13 +20,27 @@
 #include "esp_event.h"
 #include "esp_log.h"
 #include "esp_netif.h"
+#include "mqtt.h"
 #include "nvs_flash.h"
+#include "shadow.h"
 #include "wifi.h"
 
 static const char *TAG = "main_pro_max";
 
 void app_main(void)
 {
+  ESP_LOGI(TAG, "[APP] Startup..");
+  ESP_LOGI(TAG, "[APP] Free memory: %" PRIu32 " bytes", esp_get_free_heap_size());
+  ESP_LOGI(TAG, "[APP] IDF version: %s", esp_get_idf_version());
+
+  esp_log_level_set("*", ESP_LOG_INFO);
+  esp_log_level_set("esp-tls", ESP_LOG_VERBOSE);
+  esp_log_level_set("mqtt_client", ESP_LOG_VERBOSE);
+  esp_log_level_set("mqtt_example", ESP_LOG_VERBOSE);
+  esp_log_level_set("transport_base", ESP_LOG_VERBOSE);
+  esp_log_level_set("transport", ESP_LOG_VERBOSE);
+  esp_log_level_set("outbox", ESP_LOG_VERBOSE);
+
   //Initialize NVS
   esp_err_t ret = nvs_flash_init();
   if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
@@ -37,4 +51,15 @@ void app_main(void)
 
   // init wifi
   wifi_init_sta();
+
+  // mqtt
+  const esp_mqtt_client_handle_t client = mqtt_app_start();
+
+  xEventGroupWaitBits(mqtt_event_group, MQTT_CONNECTED_BIT, pdFALSE, pdFALSE, portMAX_DELAY);
+  ESP_LOGW(TAG, "NOW CALLING shadow_init()");
+  shadow_init(client);
+
+  xEventGroupWaitBits(shadow_event_group, SHADOW_INITED_BIT, pdFALSE, pdFALSE, portMAX_DELAY);
+  ESP_LOGW(TAG, "NOW CALLING shadow_get()");
+  shadow_get(client);
 }
