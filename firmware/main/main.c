@@ -24,6 +24,7 @@
 #include "esp_task_wdt.h"
 #include "mqtt.h"
 #include "nvs_flash.h"
+#include "scheduler.h"
 #include "shadow.h"
 #include "wifi.h"
 
@@ -90,5 +91,13 @@ void app_main(void) {
     ESP_LOGE(TAG, "Failed to update system time within 10s timeout");
   } else {
     ESP_LOGI(TAG, "System time updated from gr.pool.ntp.org!");
+  }
+
+  uint32_t sleep_duration_ms;
+
+  const int result = scheduler_schedule_next_irrigation(&sleep_duration_ms);
+  if (result == 1) {
+    ESP_LOGW(TAG, "ENTERING DEEP SLEEP FOR: %ds", sleep_duration_ms/1000);
+    esp_deep_sleep((sleep_duration_ms/1000) * 1000000ULL);
   }
 }

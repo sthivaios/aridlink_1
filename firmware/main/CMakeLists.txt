@@ -1,4 +1,4 @@
-idf_component_register(SRCS "./main.c" "wifi.c" "mqtt.c" "shadow.c"
+idf_component_register(SRCS "./main.c" "wifi.c" "mqtt.c" "shadow.c" "scheduler.c"
                     INCLUDE_DIRS ".")
 
 target_add_binary_data(${COMPONENT_TARGET} "../certs/root_ca.pem" TEXT)

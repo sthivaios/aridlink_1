@@ -20,6 +20,7 @@
 #include "shadow.h"
 
 #include "esp_log.h"
+#include "scheduler.h"
 
 EventGroupHandle_t shadow_event_group;
 char shadow_buffer[4096];
@@ -45,4 +46,6 @@ void shadow_get(esp_mqtt_client_handle_t client) {
   xEventGroupWaitBits(shadow_event_group, SHADOW_GET_ACCEPTED_BIT, pdFALSE, pdFALSE, portMAX_DELAY);
   // shadow_buffer now contains the shadow
   printf("%s\r\n", shadow_buffer);
+  ESP_LOGI(TAG, "Calling scheduler");
+  scheduler_load_from_json_to_nvs(shadow_buffer);
 }
