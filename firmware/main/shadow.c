@@ -41,9 +41,8 @@ void shadow_init(esp_mqtt_client_handle_t client) {
 
 void shadow_get(esp_mqtt_client_handle_t client) {
   esp_mqtt_client_publish(client, "$aws/things/aridlink1_dev/shadow/get", "{}", 2, 0, 0);
-  ESP_LOGI(TAG, "PUBLISHED SHADOW GET REQUEST - WAITING FOR EVENT GROUP BIT");
+  ESP_LOGI(TAG, "PUBLISHED SHADOW GET REQUEST - WAITING FOR RESPONSE");
   xEventGroupWaitBits(shadow_event_group, SHADOW_GET_ACCEPTED_BIT, pdFALSE, pdFALSE, portMAX_DELAY);
-  ESP_LOGI(TAG, "EVENT GROUP BIT RECEIVED");
   // shadow_buffer now contains the shadow
   printf("%s\r\n", shadow_buffer);
 }
