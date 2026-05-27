@@ -21,6 +21,7 @@
 #include "esp_log.h"
 #include "esp_netif.h"
 #include "esp_netif_sntp.h"
+#include "esp_task_wdt.h"
 #include "mqtt.h"
 #include "nvs_flash.h"
 #include "shadow.h"
@@ -30,10 +31,10 @@ static const char *TAG = "main_pro_max";
 
 BaseType_t ntp_task_handle;
 
-void app_main(void)
-{
+void app_main(void) {
   ESP_LOGI(TAG, "[APP] Startup..");
-  ESP_LOGI(TAG, "[APP] Free memory: %" PRIu32 " bytes", esp_get_free_heap_size());
+  ESP_LOGI(TAG, "[APP] Free memory: %" PRIu32 " bytes",
+           esp_get_free_heap_size());
   ESP_LOGI(TAG, "[APP] IDF version: %s", esp_get_idf_version());
 
   esp_log_level_set("*", ESP_LOG_INFO);
@@ -44,9 +45,18 @@ void app_main(void)
   esp_log_level_set("transport", ESP_LOG_VERBOSE);
   esp_log_level_set("outbox", ESP_LOG_VERBOSE);
 
-  //Initialize NVS
+  const esp_task_wdt_config_t wdt_config = {
+      .timeout_ms = 15000, // 15 seconds
+      .idle_core_mask = 0,
+      .trigger_panic = true,
+  };
+  esp_task_wdt_reconfigure(&wdt_config);
+  esp_task_wdt_add(nullptr); // NULL = current task (main task)
+
+  // Initialize NVS
   esp_err_t ret = nvs_flash_init();
-  if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+  if (ret == ESP_ERR_NVS_NO_FREE_PAGES ||
+      ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
     ESP_ERROR_CHECK(nvs_flash_erase());
     ret = nvs_flash_init();
   }
@@ -58,12 +68,14 @@ void app_main(void)
   // mqtt
   const esp_mqtt_client_handle_t client = mqtt_app_start();
 
-  xEventGroupWaitBits(mqtt_event_group, MQTT_CONNECTED_BIT, pdFALSE, pdFALSE, portMAX_DELAY);
-  ESP_LOGW(TAG, "NOW CALLING shadow_init()");
+  xEventGroupWaitBits(mqtt_event_group, MQTT_CONNECTED_BIT, pdFALSE, pdFALSE,
+                      portMAX_DELAY);
+  ESP_LOGI(TAG, "NOW CALLING shadow_init()");
   shadow_init(client);
 
-  xEventGroupWaitBits(shadow_event_group, SHADOW_INITED_BIT, pdFALSE, pdFALSE, portMAX_DELAY);
-  ESP_LOGW(TAG, "NOW CALLING shadow_get()");
+  xEventGroupWaitBits(shadow_event_group, SHADOW_SUBSCRIBED_TO_TOPICS, pdFALSE, pdFALSE,
+                      portMAX_DELAY);
+  ESP_LOGI(TAG, "NOW CALLING shadow_get()");
   shadow_get(client);
 
   setenv("TZ", "UTC", 1);
@@ -73,9 +85,8 @@ void app_main(void)
   esp_netif_sntp_init(&config);
 
   if (esp_netif_sntp_sync_wait(pdMS_TO_TICKS(10000)) != ESP_OK) {
-    printf("Failed to update system time within 10s timeout");
+    ESP_LOGE(TAG, "Failed to update system time within 10s timeout");
   } else {
     ESP_LOGI(TAG, "System time updated from gr.pool.ntp.org!");
   }
-
 }

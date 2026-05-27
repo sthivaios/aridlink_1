@@ -31,20 +31,20 @@ void set_shadow_buffer(const char *data, int len) {
 }
 
 void shadow_init(esp_mqtt_client_handle_t client) {
-  esp_mqtt_client_subscribe(client, SHADOW_ACCEPTED_TOPIC, 0);
-  ESP_LOGW(TAG, "SUBSCRIBED TO ACCEPTED TOPIC");
-  esp_mqtt_client_subscribe(client, SHADOW_REJECTED_TOPIC, 0);
-  ESP_LOGW(TAG, "SUBSCRIBED TO REJECTED TOPIC");
   shadow_event_group = xEventGroupCreate();
-  ESP_LOGW(TAG, "CREATED EVENT GROUP");
-  xEventGroupSetBits(shadow_event_group, SHADOW_INITED_BIT);
+  ESP_LOGI(TAG, "CREATED EVENT GROUP");
+  esp_mqtt_client_subscribe(client, SHADOW_ACCEPTED_TOPIC, 0);
+  ESP_LOGI(TAG, "SUBSCRIBED TO ACCEPTED TOPIC");
+  esp_mqtt_client_subscribe(client, SHADOW_REJECTED_TOPIC, 0);
+  ESP_LOGI(TAG, "SUBSCRIBED TO REJECTED TOPIC");
+  xEventGroupSetBits(shadow_event_group, SHADOW_SUBSCRIBED_TO_TOPICS);
 }
 
 void shadow_get(esp_mqtt_client_handle_t client) {
   esp_mqtt_client_publish(client, "$aws/things/aridlink1_dev/shadow/get", "{}", 2, 0, 0);
-  ESP_LOGW(TAG, "PUBLISHED SHADOW GET REQUEST - WAITING FOR EVENT GROUP BIT");
+  ESP_LOGI(TAG, "PUBLISHED SHADOW GET REQUEST - WAITING FOR EVENT GROUP BIT");
   xEventGroupWaitBits(shadow_event_group, SHADOW_GET_ACCEPTED_BIT, pdFALSE, pdFALSE, portMAX_DELAY);
-  ESP_LOGW(TAG, "EVENT GROUP BIT RECEIVED");
+  ESP_LOGI(TAG, "EVENT GROUP BIT RECEIVED");
   // shadow_buffer now contains the shadow
-  printf("%s", shadow_buffer);
+  printf("%s\r\n", shadow_buffer);
 }

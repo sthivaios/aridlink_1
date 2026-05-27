@@ -27,7 +27,7 @@
 
 #define SHADOW_GET_ACCEPTED_BIT BIT0
 #define SHADOW_GET_REJECTED_BIT BIT1
-#define SHADOW_INITED_BIT BIT2
+#define SHADOW_SUBSCRIBED_TO_TOPICS BIT2
 
 extern EventGroupHandle_t shadow_event_group;
 

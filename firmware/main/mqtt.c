@@ -77,9 +77,10 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base,
     if (strncmp(event->topic, SHADOW_ACCEPTED_TOPIC, event->topic_len) == 0) {
       set_shadow_buffer(event->data, event->data_len);
       xEventGroupSetBits(shadow_event_group, SHADOW_GET_ACCEPTED_BIT);
+    } else {
+      printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
+      printf("DATA=%.*s\r\n", event->data_len, event->data);
     }
-    printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
-    printf("DATA=%.*s\r\n", event->data_len, event->data);
     break;
   case MQTT_EVENT_ERROR:
     ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
