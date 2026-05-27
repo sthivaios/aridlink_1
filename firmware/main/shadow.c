@@ -37,7 +37,6 @@ void shadow_init(esp_mqtt_client_handle_t client) {
   ESP_LOGI(TAG, "SUBSCRIBED TO ACCEPTED TOPIC");
   esp_mqtt_client_subscribe(client, SHADOW_REJECTED_TOPIC, 0);
   ESP_LOGI(TAG, "SUBSCRIBED TO REJECTED TOPIC");
-  xEventGroupSetBits(shadow_event_group, SHADOW_SUBSCRIBED_TO_TOPICS);
 }
 
 void shadow_get(esp_mqtt_client_handle_t client) {

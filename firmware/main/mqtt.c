@@ -63,6 +63,11 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base,
     ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
     break;
   case MQTT_EVENT_SUBSCRIBED:
+    if (strcmp(event->topic, SHADOW_ACCEPTED_TOPIC) == 0) {
+      xEventGroupSetBits(shadow_event_group, SHADOW_SUBSCRIBED_TO_ACCEPTED_TOPIC_BIT);
+    } else if (strcmp(event->topic, SHADOW_REJECTED_TOPIC) == 0) {
+      xEventGroupSetBits(shadow_event_group, SHADOW_SUBSCRIBED_TO_REJECTED_TOPIC_BIT);
+    }
     ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d, return code=0x%02x ",
              event->msg_id, (uint8_t)*event->data);
     break;

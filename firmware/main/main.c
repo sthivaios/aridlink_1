@@ -73,8 +73,10 @@ void app_main(void) {
   ESP_LOGI(TAG, "NOW CALLING shadow_init()");
   shadow_init(client);
 
-  xEventGroupWaitBits(shadow_event_group, SHADOW_SUBSCRIBED_TO_TOPICS, pdFALSE, pdFALSE,
-                      portMAX_DELAY);
+  xEventGroupWaitBits(shadow_event_group,
+                      SHADOW_SUBSCRIBED_TO_ACCEPTED_TOPIC_BIT |
+                          SHADOW_SUBSCRIBED_TO_REJECTED_TOPIC_BIT,
+                      pdFALSE, pdFALSE, portMAX_DELAY);
   ESP_LOGI(TAG, "NOW CALLING shadow_get()");
   shadow_get(client);
 
