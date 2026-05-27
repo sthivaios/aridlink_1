@@ -19,6 +19,10 @@
 
 #include "scheduler.h"
 
+#include "esp_log.h"
+
+static const char *TAG = "SCHEDULER";
+
 void scheduler_load_from_json_to_nvs(const char *json) {
   cJSON *root = cJSON_Parse(json);
   if (root == NULL) {
@@ -44,9 +48,9 @@ void scheduler_load_from_json_to_nvs(const char *json) {
   printf("%s\r\n", schedule_string);
 
   nvs_handle_t handle;
-  nvs_open("aridlink_scheduler", NVS_READWRITE, &handle);
+  nvs_open("aridlink_sched", NVS_READWRITE, &handle);
 
-  nvs_set_str(handle, "current_schedule", schedule_string);
+  nvs_set_str(handle, "current_sched", schedule_string);
 
   nvs_commit(handle);
   nvs_close(handle);
@@ -75,12 +79,19 @@ time_t scheduler_parse_entry(cJSON *item, const time_t now, bool tomorrow) {
   return event_timestamp;
 }
 
-int scheduler_schedule_next_irrigation(uint32_t *sleep_duration_ms) {
+int scheduler_schedule_next_irrigation(uint32_t *sleep_duration_s) {
   char current_schedule[4096];
   size_t size = 4096;
   nvs_handle_t handle;
-  nvs_open("aridlink_scheduler", NVS_READWRITE, &handle);
-  nvs_get_str(handle, "current_schedule", current_schedule, &size);
+
+  // nvs_open("aridlink_sched", NVS_READWRITE, &handle);
+  // nvs_get_str(handle, "current_sched", current_schedule, &size);
+
+  esp_err_t err = nvs_open("aridlink_sched", NVS_READWRITE, &handle);
+  ESP_LOGI(TAG, "NVS open: %s", esp_err_to_name(err));
+  err = nvs_get_str(handle, "current_sched", current_schedule, &size);
+  ESP_LOGI(TAG, "NVS get: %s", esp_err_to_name(err));
+  ESP_LOGI(TAG, "Schedule string: %s", current_schedule);
 
   cJSON *root = cJSON_Parse(current_schedule);
   if (root == NULL) {
@@ -90,6 +101,7 @@ int scheduler_schedule_next_irrigation(uint32_t *sleep_duration_ms) {
 
   time_t now;
   time(&now);
+  ESP_LOGI(TAG, "Current unix timestamp: %lld", (long long)now);
 
   for (int i = 0; i < array_length; i++) {
     cJSON *item = cJSON_GetArrayItem(root, i);
@@ -103,7 +115,7 @@ int scheduler_schedule_next_irrigation(uint32_t *sleep_duration_ms) {
     const time_t event_timestamp = scheduler_parse_entry(start_time, now, false);
 
     if (event_timestamp > now) {
-      *sleep_duration_ms = event_timestamp - now;
+      *sleep_duration_s = event_timestamp - now;
       nvs_close(handle);
       cJSON_Delete(root);
       return 1;
@@ -120,7 +132,7 @@ int scheduler_schedule_next_irrigation(uint32_t *sleep_duration_ms) {
   }
   const time_t event_timestamp = scheduler_parse_entry(start_time, now, true);
 
-  *sleep_duration_ms = event_timestamp - now;
+  *sleep_duration_s = event_timestamp - now;
   nvs_close(handle);
   cJSON_Delete(root);
   return 1;

@@ -27,6 +27,6 @@
 
 void scheduler_load_from_json_to_nvs(const char *json);
 time_t scheduler_parse_entry(cJSON *item, time_t now, bool tomorrow);
-int scheduler_schedule_next_irrigation(uint32_t *sleep_duration_ms);
+int scheduler_schedule_next_irrigation(uint32_t *sleep_duration_s);
 
 #endif // ARIDLINK_SCHEDULER_H
