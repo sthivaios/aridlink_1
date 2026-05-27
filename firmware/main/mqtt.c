@@ -21,6 +21,8 @@
 
 static const char *TAG = "mqtt";
 
+char shadow_buffer[16384];
+
 EventGroupHandle_t mqtt_event_group;
 
 extern const uint8_t root_ca_pem_start[] asm("_binary_root_ca_pem_start");
@@ -47,7 +49,6 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base,
            base, event_id);
   esp_mqtt_event_handle_t event = event_data;
   esp_mqtt_client_handle_t client = event->client;
-  int msg_id;
 
   switch ((esp_mqtt_event_id_t)event_id) {
   case MQTT_EVENT_CONNECTED:
@@ -80,8 +81,17 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base,
   case MQTT_EVENT_DATA:
     // ESP_LOGI(TAG, "MQTT_EVENT_DATA");
     if (strncmp(event->topic, SHADOW_ACCEPTED_TOPIC, event->topic_len) == 0) {
-      set_shadow_buffer(event->data, event->data_len);
-      xEventGroupSetBits(shadow_event_group, SHADOW_GET_ACCEPTED_BIT);
+      if (event->current_data_offset == 0) {
+        // first chunk, clear buffer
+        memset(shadow_buffer, 0, sizeof(shadow_buffer));
+      }
+      // append chunk
+      strncat(shadow_buffer, event->data, event->data_len);
+
+      // only signal complete when we have all data
+      if (event->current_data_offset + event->data_len >= event->total_data_len) {
+        xEventGroupSetBits(shadow_event_group, SHADOW_GET_ACCEPTED_BIT);
+      }
     } else {
       printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
       printf("DATA=%.*s\r\n", event->data_len, event->data);
