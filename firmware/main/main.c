@@ -20,12 +20,15 @@
 #include "esp_event.h"
 #include "esp_log.h"
 #include "esp_netif.h"
+#include "esp_netif_sntp.h"
 #include "mqtt.h"
 #include "nvs_flash.h"
 #include "shadow.h"
 #include "wifi.h"
 
 static const char *TAG = "main_pro_max";
+
+BaseType_t ntp_task_handle;
 
 void app_main(void)
 {
@@ -62,4 +65,17 @@ void app_main(void)
   xEventGroupWaitBits(shadow_event_group, SHADOW_INITED_BIT, pdFALSE, pdFALSE, portMAX_DELAY);
   ESP_LOGW(TAG, "NOW CALLING shadow_get()");
   shadow_get(client);
+
+  setenv("TZ", "UTC", 1);
+  tzset();
+
+  esp_sntp_config_t config = ESP_NETIF_SNTP_DEFAULT_CONFIG("gr.pool.ntp.org");
+  esp_netif_sntp_init(&config);
+
+  if (esp_netif_sntp_sync_wait(pdMS_TO_TICKS(10000)) != ESP_OK) {
+    printf("Failed to update system time within 10s timeout");
+  } else {
+    ESP_LOGI(TAG, "System time updated from gr.pool.ntp.org!");
+  }
+
 }
