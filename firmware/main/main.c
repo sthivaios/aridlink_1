@@ -66,6 +66,18 @@ void app_main(void) {
   // init wifi
   wifi_init_sta();
 
+  setenv("TZ", "UTC", 1);
+  tzset();
+
+  esp_sntp_config_t config = ESP_NETIF_SNTP_DEFAULT_CONFIG("gr.pool.ntp.org");
+  esp_netif_sntp_init(&config);
+
+  if (esp_netif_sntp_sync_wait(pdMS_TO_TICKS(10000)) != ESP_OK) {
+    ESP_LOGE(TAG, "Failed to update system time within 10s timeout");
+  } else {
+    ESP_LOGI(TAG, "System time updated from gr.pool.ntp.org!");
+  }
+
   // mqtt
   const esp_mqtt_client_handle_t client = mqtt_app_start();
 
@@ -81,23 +93,13 @@ void app_main(void) {
   ESP_LOGI(TAG, "NOW CALLING shadow_get()");
   shadow_get(client);
 
-  setenv("TZ", "UTC", 1);
-  tzset();
+  uint32_t sleep_duration_s;
 
-  esp_sntp_config_t config = ESP_NETIF_SNTP_DEFAULT_CONFIG("gr.pool.ntp.org");
-  esp_netif_sntp_init(&config);
+  const int result = scheduler_schedule_next_irrigation(&sleep_duration_s);
+  ESP_LOGI(TAG, "Scheduler result: %d, sleep duration: %lu", result, sleep_duration_s);
 
-  if (esp_netif_sntp_sync_wait(pdMS_TO_TICKS(10000)) != ESP_OK) {
-    ESP_LOGE(TAG, "Failed to update system time within 10s timeout");
-  } else {
-    ESP_LOGI(TAG, "System time updated from gr.pool.ntp.org!");
-  }
-
-  uint32_t sleep_duration_ms;
-
-  const int result = scheduler_schedule_next_irrigation(&sleep_duration_ms);
   if (result == 1) {
-    ESP_LOGW(TAG, "ENTERING DEEP SLEEP FOR: %ds", sleep_duration_ms/1000);
-    esp_deep_sleep((sleep_duration_ms/1000) * 1000000ULL);
+    ESP_LOGW(TAG, "ENTERING DEEP SLEEP FOR: %ds", sleep_duration_s);
+    esp_deep_sleep((sleep_duration_s) * 1000000ULL);
   }
 }
