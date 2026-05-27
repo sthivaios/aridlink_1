@@ -20,10 +20,10 @@
 #include "shadow.h"
 
 #include "esp_log.h"
+#include "mqtt.h"
 #include "scheduler.h"
 
 EventGroupHandle_t shadow_event_group;
-char shadow_buffer[4096];
 
 static const char *TAG = "shadow_handler";
 
