@@ -25,8 +25,14 @@
 #include "nvs.h"
 #include <stdio.h>
 
+typedef struct {
+  bool should_water;
+  uint32_t water_duration_s;
+  uint32_t sleep_duration_s;
+} scheduler_result_t;
+
 void scheduler_load_from_json_to_nvs(const char *json);
 time_t scheduler_parse_entry(cJSON *item, time_t now, bool tomorrow);
-int scheduler_schedule_next_irrigation(uint32_t *sleep_duration_s);
+int scheduler_get_next_action(scheduler_result_t *scheduler_next_action_result);
 
 #endif // ARIDLINK_SCHEDULER_H

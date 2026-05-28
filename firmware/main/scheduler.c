@@ -79,7 +79,7 @@ time_t scheduler_parse_entry(cJSON *item, const time_t now, bool tomorrow) {
   return event_timestamp;
 }
 
-int scheduler_schedule_next_irrigation(uint32_t *sleep_duration_s) {
+int scheduler_get_next_action(scheduler_result_t *scheduler_next_action_result) {
   char current_schedule[4096];
   size_t size = 4096;
   nvs_handle_t handle;
@@ -112,12 +112,27 @@ int scheduler_schedule_next_irrigation(uint32_t *sleep_duration_s) {
     if (start_time == NULL) {
       continue;
     }
+    cJSON *duration_s_item = cJSON_GetObjectItem(item, "duration_s");
+    if (duration_s_item == NULL) {
+      continue;
+    }
+
     const time_t event_timestamp = scheduler_parse_entry(start_time, now, false);
+    const uint32_t duration_s = (uint32_t)cJSON_GetNumberValue(duration_s_item);
+
+    if (event_timestamp <= now && (now < event_timestamp + duration_s)) {
+      scheduler_next_action_result->should_water = true;
+      scheduler_next_action_result->sleep_duration_s = 0;
+      scheduler_next_action_result->water_duration_s = duration_s;
+      return 1;
+    }
 
     if (event_timestamp > now) {
-      *sleep_duration_s = event_timestamp - now;
       nvs_close(handle);
       cJSON_Delete(root);
+      scheduler_next_action_result->should_water = false;
+      scheduler_next_action_result->sleep_duration_s = event_timestamp - now;;
+      scheduler_next_action_result->water_duration_s = 0;
       return 1;
     }
   }
@@ -132,8 +147,10 @@ int scheduler_schedule_next_irrigation(uint32_t *sleep_duration_s) {
   }
   const time_t event_timestamp = scheduler_parse_entry(start_time, now, true);
 
-  *sleep_duration_s = event_timestamp - now;
   nvs_close(handle);
   cJSON_Delete(root);
+  scheduler_next_action_result->should_water = false;
+  scheduler_next_action_result->sleep_duration_s = event_timestamp - now;;
+  scheduler_next_action_result->water_duration_s = 0;
   return 1;
 }

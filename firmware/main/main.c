@@ -17,16 +17,22 @@
  * along with AridLink 1 Firmware. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "driver/gpio.h"
 #include "esp_event.h"
 #include "esp_log.h"
 #include "esp_netif.h"
 #include "esp_netif_sntp.h"
+#include "esp_private/esp_task_wdt.h"
 #include "esp_task_wdt.h"
+#include "esp_wifi.h"
 #include "mqtt.h"
 #include "nvs_flash.h"
 #include "scheduler.h"
 #include "shadow.h"
 #include "wifi.h"
+#include "driver/rtc_io.h"
+
+#define LED_GPIO 17
 
 static const char *TAG = "main_pro_max";
 
@@ -53,6 +59,12 @@ void app_main(void) {
   };
   esp_task_wdt_reconfigure(&wdt_config);
   esp_task_wdt_add(nullptr); // NULL = current task (main task)
+
+  gpio_set_direction(LED_GPIO,GPIO_MODE_OUTPUT);
+
+  rtc_gpio_hold_dis(GPIO_NUM_17);
+  rtc_gpio_set_level(GPIO_NUM_17, 0);
+  rtc_gpio_deinit(GPIO_NUM_17);
 
   // Initialize NVS
   esp_err_t ret = nvs_flash_init();
@@ -93,13 +105,22 @@ void app_main(void) {
   ESP_LOGI(TAG, "NOW CALLING shadow_get()");
   shadow_get(client);
 
-  uint32_t sleep_duration_s;
+  scheduler_result_t scheduler_result;
 
-  const int result = scheduler_schedule_next_irrigation(&sleep_duration_s);
-  ESP_LOGI(TAG, "Scheduler result: %d, sleep duration: %lu", result, sleep_duration_s);
+  const int result = scheduler_get_next_action(&scheduler_result);
 
   if (result == 1) {
-    ESP_LOGW(TAG, "ENTERING DEEP SLEEP FOR: %ds", sleep_duration_s);
-    esp_deep_sleep((sleep_duration_s) * 1000000ULL);
+    if (scheduler_result.should_water) {
+      ESP_LOGI(TAG, "ENTERED IRRIGATION WINDOW - Watering for: %ds", scheduler_result.water_duration_s);
+      rtc_gpio_init(GPIO_NUM_17);
+      rtc_gpio_set_direction(GPIO_NUM_17, RTC_GPIO_MODE_OUTPUT_ONLY);
+      rtc_gpio_set_level(GPIO_NUM_17, 1);  // open valve
+      rtc_gpio_hold_en(GPIO_NUM_17);
+      esp_sleep_enable_timer_wakeup(scheduler_result.water_duration_s * 1000000ULL);
+      esp_deep_sleep_start();
+    } else {
+      ESP_LOGW(TAG, "ENTERING DEEP SLEEP FOR: %ds", scheduler_result.sleep_duration_s);
+      esp_deep_sleep((scheduler_result.sleep_duration_s) * 1000000ULL);
+    }
   }
 }
