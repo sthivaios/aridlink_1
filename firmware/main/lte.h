@@ -17,13 +17,11 @@
  * along with AridLink 1 Firmware. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef ARIDLINK_WIFI_H
-#define ARIDLINK_WIFI_H
+#ifndef ARIDLINK_LTE_H
+#define ARIDLINK_LTE_H
+#include "esp_modem_c_api_types.h"
 
-#define WIFI_CONNECTED_BIT BIT0
-#define WIFI_FAIL_BIT      BIT1
-#define MAX_WIFI_RETRIES 3
+esp_modem_dce_t * get_dce();
+void lte_connect(void);
 
-void wifi_init_sta(void);
-
-#endif // ARIDLINK_WIFI_H
+#endif // ARIDLINK_LTE_H

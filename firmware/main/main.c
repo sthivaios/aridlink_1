@@ -18,6 +18,7 @@
  */
 
 #include "driver/gpio.h"
+#include "driver/rtc_io.h"
 #include "esp_event.h"
 #include "esp_log.h"
 #include "esp_netif.h"
@@ -25,12 +26,12 @@
 #include "esp_private/esp_task_wdt.h"
 #include "esp_task_wdt.h"
 #include "esp_wifi.h"
+#include "lte.h"
 #include "mqtt.h"
 #include "nvs_flash.h"
 #include "scheduler.h"
 #include "shadow.h"
 #include "wifi.h"
-#include "driver/rtc_io.h"
 
 #define LED_GPIO 17
 
@@ -76,7 +77,7 @@ void app_main(void) {
   ESP_ERROR_CHECK(ret);
 
   // init wifi
-  wifi_init_sta();
+  lte_connect();
 
   setenv("TZ", "UTC", 1);
   tzset();
