@@ -1,0 +1,32 @@
+# KiCad auto-save and backup files
+*.kicad_pcb-bak
+*.kicad_sch-bak
+*.bak
+*.bck
+*-backups/
+_autosave-*
+
+# KiCad lock files
+*.lck
+
+# Fabrication outputs
+gerbers/
+production/
+*.gbr
+*.drl
+*.gko
+*.gtl
+*.gbl
+*.gts
+*.gbs
+*.gto
+*.gbo
+
+# 3D models cache
+fp-info-cache
+
+# Local settings file
+odsci.kicad_prl
+
+# Misc
+\#*\#
