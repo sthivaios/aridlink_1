@@ -23,5 +23,7 @@
 
 esp_modem_dce_t * get_dce();
 void lte_connect(void);
+void modem_wakeup_or_sleep(bool wakeup);
+void lte_init(void);
 
 #endif // ARIDLINK_LTE_H
