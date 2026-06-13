@@ -1,15 +1,7 @@
 menu "AridLink Configuration"
 
-    config ARIDLINK_WIFI_SSID
-        string "WiFi SSID (DEPRECATED)"
-        default ""
-
-    config ARIDLINK_WIFI_PASSWORD
-        string "WiFi Password (DEPRECATED)"
-        default ""
-
     config ARIDLINK_AWS_ENDPOINT
-        string "AWS IoT Endpoint (DEPRECATED)"
+        string "AWS IoT Endpoint"
         default ""
 
     config PPP_CONN_MAX_RETRY
