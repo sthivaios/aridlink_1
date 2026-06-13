@@ -45,7 +45,7 @@ void shadow_get(esp_mqtt_client_handle_t client) {
   ESP_LOGI(TAG, "PUBLISHED SHADOW GET REQUEST - WAITING FOR RESPONSE");
   xEventGroupWaitBits(shadow_event_group, SHADOW_GET_ACCEPTED_BIT, pdFALSE, pdFALSE, portMAX_DELAY);
   // shadow_buffer now contains the shadow
-  printf("%s\r\n", shadow_buffer);
+  // printf("%s\r\n", shadow_buffer);
   ESP_LOGI(TAG, "Calling scheduler");
   scheduler_load_from_json_to_nvs(shadow_buffer);
 }

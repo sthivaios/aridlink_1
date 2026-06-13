@@ -19,11 +19,24 @@
 
 #include "scheduler.h"
 
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
+#include "driver/gpio.h"
 #include "esp_log.h"
+#include "nvs.h"
 
-static const char *TAG = "SCHEDULER";
+static const char *TAG = "valve_scheduler";
+volatile static bool schedule_changed = false;
 
+volatile static Irrigation_Window_t parsed_schedule[64];
+volatile static int parsed_schedule_length = 0;
+
+// called from shadow.c and loads the json response into nvs
 void scheduler_load_from_json_to_nvs(const char *json) {
+  char current_schedule[4096];
+  size_t size = 4096;
+
   cJSON *root = cJSON_Parse(json);
   if (root == NULL) {
     return;
@@ -45,10 +58,14 @@ void scheduler_load_from_json_to_nvs(const char *json) {
     return;
   }
 
-  printf("%s\r\n", schedule_string);
-
   nvs_handle_t handle;
   nvs_open("aridlink_sched", NVS_READWRITE, &handle);
+
+  nvs_get_str(handle, "current_sched", current_schedule, &size);
+
+  if (strcmp(schedule_string, current_schedule) == 0) {
+    schedule_changed = true;
+  }
 
   nvs_set_str(handle, "current_sched", schedule_string);
 
@@ -59,98 +76,134 @@ void scheduler_load_from_json_to_nvs(const char *json) {
   cJSON_Delete((cJSON *)root);
 }
 
-time_t scheduler_parse_entry(cJSON *item, const time_t now, bool tomorrow) {
-  const char *start_time_string = cJSON_GetStringValue(item);
-  int start_hours;
-  int start_minutes;
-  struct tm *current_time_breakdown = gmtime(&now);
-  sscanf(start_time_string, "%d:%d", &start_hours, &start_minutes);
+// loads the schedule from nvs into ram as an array of structs so it can be
+// processed by the scheduler task
+void scheduler_unload_nvs_into_ram() {
+  ESP_LOGI(TAG, "Loading schedule from NVS into RAM...");
 
-  struct tm irrigation_time = *current_time_breakdown;
-  irrigation_time.tm_hour = start_hours;
-  irrigation_time.tm_min = start_minutes;
-  irrigation_time.tm_sec = 0;
-  if (tomorrow) {
-    irrigation_time.tm_mday = irrigation_time.tm_mday + 1;
-  }
-
-  const time_t event_timestamp = mktime(&irrigation_time);
-
-  return event_timestamp;
-}
-
-int scheduler_get_next_action(scheduler_result_t *scheduler_next_action_result) {
-  char current_schedule[4096];
+  // initialize nvs variables and buffers and handles and stuff
+  char current_schedule_json[4096];
   size_t size = 4096;
   nvs_handle_t handle;
 
-  // nvs_open("aridlink_sched", NVS_READWRITE, &handle);
-  // nvs_get_str(handle, "current_sched", current_schedule, &size);
+  // open nvs and grab schedule json string
+  if (nvs_open("aridlink_sched", NVS_READWRITE, &handle) != ESP_OK) {
+    ESP_LOGE(TAG,
+             "FATAL ERROR: Cannot open session with NVS! Will hard-reset.");
+    abort();
+  };
+  if (nvs_get_str(handle, "current_sched", current_schedule_json, &size) !=
+      ESP_OK) {
+    ESP_LOGE(TAG, "FATAL ERROR: Cannot schedule from NVS! Will hard-reset.");
+    abort();
+  };
 
-  esp_err_t err = nvs_open("aridlink_sched", NVS_READWRITE, &handle);
-  ESP_LOGI(TAG, "NVS open: %s", esp_err_to_name(err));
-  err = nvs_get_str(handle, "current_sched", current_schedule, &size);
-  ESP_LOGI(TAG, "NVS get: %s", esp_err_to_name(err));
-  ESP_LOGI(TAG, "Schedule string: %s", current_schedule);
-
-  cJSON *root = cJSON_Parse(current_schedule);
+  // get root array and length
+  cJSON *root = cJSON_Parse(current_schedule_json);
   if (root == NULL) {
-    return 0;
+    return;
   }
   const int array_length = cJSON_GetArraySize(root);
 
-  time_t now;
-  time(&now);
-  ESP_LOGI(TAG, "Current unix timestamp: %lld", (long long)now);
+  parsed_schedule_length = 0;
 
+  // iterate through the array
   for (int i = 0; i < array_length; i++) {
+
+    // grab object from array
     cJSON *item = cJSON_GetArrayItem(root, i);
+
+    // skip to next object if its null
     if (item == NULL) {
       continue;
     }
+
+    // parse time and skip to next object if it cant
     cJSON *start_time = cJSON_GetObjectItem(item, "start");
     if (start_time == NULL) {
       continue;
     }
-    cJSON *duration_s_item = cJSON_GetObjectItem(item, "duration_s");
-    if (duration_s_item == NULL) {
+
+    // parse time and skip to next object if it cant
+    cJSON *duration_seconds = cJSON_GetObjectItem(item, "duration_s");
+    if (duration_seconds == NULL) {
       continue;
     }
 
-    const time_t event_timestamp = scheduler_parse_entry(start_time, now, false);
-    const uint32_t duration_s = (uint32_t)cJSON_GetNumberValue(duration_s_item);
+    int start_hours;
+    int start_minutes;
+    sscanf(start_time->valuestring, "%d:%d", &start_hours, &start_minutes);
 
-    if (event_timestamp <= now && (now < event_timestamp + duration_s)) {
-      scheduler_next_action_result->should_water = true;
-      scheduler_next_action_result->sleep_duration_s = 0;
-      scheduler_next_action_result->water_duration_s = duration_s;
-      return 1;
+    const Irrigation_Window_t irrigation_window = {
+        .duration_s = duration_seconds->valueint,
+        .start_hour = start_hours,
+        .start_minute = start_minutes,
+    };
+
+    parsed_schedule[parsed_schedule_length] = irrigation_window;
+    parsed_schedule_length++;
+  }
+
+  ESP_LOGW(TAG, "UPDATED SCHEDULE FOLLOWS:");
+  ESP_LOGW(TAG, "==================================================");
+  for (int i = 0; i < parsed_schedule_length; i++) {
+    const Irrigation_Window_t irrigation_window = parsed_schedule[i];
+    ESP_LOGW(TAG, "%d) Starts at %02d:%02d, and lasts for %d seconds", i,
+             irrigation_window.start_hour, irrigation_window.start_minute,
+             irrigation_window.duration_s);
+  }
+
+  schedule_changed = false;
+}
+
+// --------------------------------------------
+
+// parses an irrigation window struct, and returns a unix timestamp (seconds!)
+static time_t parse_into_timestamp(const Irrigation_Window_t irrigation_window,
+                                   const time_t now) {
+  struct tm t;
+  localtime_r(&now, &t);
+
+  t.tm_hour = irrigation_window.start_hour;
+  t.tm_min = irrigation_window.start_minute;
+  t.tm_sec = 0;
+
+  return mktime(&t);
+}
+
+void irrigation_scheduler(void *pvParameters) {
+
+  static bool valve_state = false;
+  scheduler_unload_nvs_into_ram();
+
+  for (;;) {
+
+    if (schedule_changed) {
+      ESP_LOGI(TAG, "Schedule change detected!");
+      scheduler_unload_nvs_into_ram();
     }
 
-    if (event_timestamp > now) {
-      nvs_close(handle);
-      cJSON_Delete(root);
-      scheduler_next_action_result->should_water = false;
-      scheduler_next_action_result->sleep_duration_s = event_timestamp - now;;
-      scheduler_next_action_result->water_duration_s = 0;
-      return 1;
+    time_t now;
+    time(&now);
+
+    ESP_LOGI(TAG, "Parsing schedule...");
+    for (int i = 0; i < parsed_schedule_length; i++) {
+      const Irrigation_Window_t irrigation_window = parsed_schedule[i];
+      const time_t irrigation_timestamp =
+          parse_into_timestamp(irrigation_window, now);
+
+      if (now >= irrigation_timestamp &&
+          now < (irrigation_timestamp + irrigation_window.duration_s)) {
+        valve_state = true;
+      } else {
+        valve_state = false;
+      }
     }
-  }
 
-  cJSON *item = cJSON_GetArrayItem(root, 0);
-  if (item == NULL) {
-    return 0;
-  }
-  cJSON *start_time = cJSON_GetObjectItem(item, "start");
-  if (start_time == NULL) {
-    return 0;
-  }
-  const time_t event_timestamp = scheduler_parse_entry(start_time, now, true);
+    gpio_set_level(VALVE_GPIO, valve_state);
 
-  nvs_close(handle);
-  cJSON_Delete(root);
-  scheduler_next_action_result->should_water = false;
-  scheduler_next_action_result->sleep_duration_s = event_timestamp - now;;
-  scheduler_next_action_result->water_duration_s = 0;
-  return 1;
+    ESP_LOGI(TAG, "Holding for 1 second...");
+    vTaskDelay(pdMS_TO_TICKS(1000));
+
+  }
 }

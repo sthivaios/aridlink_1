@@ -21,41 +21,26 @@
 #include "esp_event.h"
 #include "esp_log.h"
 #include "esp_netif.h"
+#include "esp_netif_sntp.h"
+#include "esp_sntp.h"
 #include "esp_task_wdt.h"
 #include "fetch_task.h"
 #include "lte.h"
 #include "nvs_flash.h"
 #include "portmacro.h"
-#include <time.h>
+#include "scheduler.h"
 
-#define VALVE_GPIO 17
+#include <time.h>
 
 static const char *TAG = "main_task_pro_max_ultra";
 TaskHandle_t fetch_task_handle = NULL;
 
 void app_main(void) {
-  // set the stupid fucking log levels
-  esp_log_level_set("*", ESP_LOG_INFO);
-  esp_log_level_set("esp-tls", ESP_LOG_VERBOSE);
-  esp_log_level_set("mqtt_client", ESP_LOG_VERBOSE);
-  esp_log_level_set("mqtt_example", ESP_LOG_VERBOSE);
-  esp_log_level_set("transport_base", ESP_LOG_VERBOSE);
-  esp_log_level_set("transport", ESP_LOG_VERBOSE);
-  esp_log_level_set("outbox", ESP_LOG_VERBOSE);
-
-  // configure watchdog for this task
-  ESP_LOGI(TAG, "Setting up watchdog");
-  const esp_task_wdt_config_t wdt_config = {
-      .timeout_ms = 45000, // 15 seconds
-      .idle_core_mask = 0,
-      .trigger_panic = true,
-  };
-  esp_task_wdt_reconfigure(&wdt_config);
-  esp_task_wdt_add(nullptr);
-
   // set valve gpio direction
   gpio_set_direction(VALVE_GPIO, GPIO_MODE_OUTPUT);
+  gpio_set_direction(GPIO_NUM_17, GPIO_MODE_OUTPUT);
   gpio_set_level(VALVE_GPIO, 0);
+  gpio_set_level(GPIO_NUM_17, 0);
 
   // Initialize NVS stuff
   ESP_LOGI(TAG, "Attempting to initialise NVS shit");
@@ -79,11 +64,23 @@ void app_main(void) {
 
   // create fetch task
   BaseType_t const fetch_task_returned =
-      xTaskCreate(fetch_task, "INTERNET_STUFF_FETCH_TASK", 8192, NULL, 0, &fetch_task_handle);
+      xTaskCreate(fetch_task, "INTERNET_STUFF_FETCH_TASK", 8192, NULL, 0,
+                  &fetch_task_handle);
 
   // explode completely if task couldnt be created
   if (fetch_task_returned != pdPASS) {
     ESP_LOGE(TAG, "Failed to create fetch task");
+    abort();
+  }
+
+  // create scheduler task
+  BaseType_t const scheduler_task_returned =
+      xTaskCreate(irrigation_scheduler, "IRRIGATION_SCHEDULER_TASK", 8192, NULL, 1,
+                  &fetch_task_handle);
+
+  // explode completely if task couldnt be created
+  if (scheduler_task_returned != pdPASS) {
+    ESP_LOGE(TAG, "Failed to create scheduler task");
     abort();
   }
 }

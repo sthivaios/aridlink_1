@@ -24,6 +24,7 @@
 #include "lte.h"
 #include "mqtt.h"
 #include "mqtt_client.h"
+#include "scheduler.h"
 
 static const char *TAG = "RTOS_FETCH_TASK";
 
@@ -90,6 +91,8 @@ void fetch_task(void *pvParameters) {
     ESP_LOGI(TAG, "Calling shadow_get()");
     shadow_get(client);
 
+    scheduler_unload_nvs_into_ram();
+
     // stop/delete mqtt client
     ESP_LOGI(TAG, "Making the MQTT client explode");
     esp_mqtt_client_disconnect(client);
@@ -102,7 +105,7 @@ cleanup_no_client:
 
     // rerun later
     esp_task_wdt_delete(nullptr);
-    ESP_LOGI(TAG, "Task standing by for %ld seconds", (next_delay_ms)/1000);
+    ESP_LOGI(TAG, "Task standing by for %llu seconds", (unsigned long long)(next_delay_ms / 1000));
     vTaskDelay(pdMS_TO_TICKS(next_delay_ms));
   }
 }
