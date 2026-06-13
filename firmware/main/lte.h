@@ -21,8 +21,16 @@
 #define ARIDLINK_LTE_H
 #include "esp_modem_c_api_types.h"
 
+typedef enum {
+  LTE_CONNECTED_SUCCESSFULLY,
+  LTE_MODEM_NO_CONTACT,
+  LTE_MODEM_NO_RSSI,
+  LTE_MODEM_COULDNT_SET_MODE,
+  LTE_MODEM_COULDNT_GET_IP
+} LTE_Connect_Status_t;
+
 esp_modem_dce_t * get_dce();
-void lte_connect(void);
+LTE_Connect_Status_t lte_connect(void);
 void modem_wakeup_or_sleep(bool wakeup);
 void lte_init(void);
 
