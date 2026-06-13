@@ -14,37 +14,27 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with AridLink 1 Firmware. If not, see <https://www.gnu.org/licenses/>.
+ * along with AridLink 1 Firmware. If not, see <https://www.gnu.org/licenses/>.f
  */
 
 #include "driver/gpio.h"
-#include "driver/rtc_io.h"
 #include "esp_event.h"
 #include "esp_log.h"
 #include "esp_netif.h"
-#include "esp_netif_sntp.h"
-#include "esp_private/esp_task_wdt.h"
 #include "esp_task_wdt.h"
-#include "esp_wifi.h"
+#include "fetch_task.h"
 #include "lte.h"
-#include "mqtt.h"
 #include "nvs_flash.h"
-#include "scheduler.h"
-#include "shadow.h"
-#include "wifi.h"
+#include "portmacro.h"
+#include <time.h>
 
-#define LED_GPIO 17
+#define VALVE_GPIO 17
 
-static const char *TAG = "main_pro_max";
-
-BaseType_t ntp_task_handle;
+static const char *TAG = "main_task_pro_max_ultra";
+TaskHandle_t fetch_task_handle = NULL;
 
 void app_main(void) {
-  ESP_LOGI(TAG, "[APP] Startup..");
-  ESP_LOGI(TAG, "[APP] Free memory: %" PRIu32 " bytes",
-           esp_get_free_heap_size());
-  ESP_LOGI(TAG, "[APP] IDF version: %s", esp_get_idf_version());
-
+  // set the stupid fucking log levels
   esp_log_level_set("*", ESP_LOG_INFO);
   esp_log_level_set("esp-tls", ESP_LOG_VERBOSE);
   esp_log_level_set("mqtt_client", ESP_LOG_VERBOSE);
@@ -53,21 +43,22 @@ void app_main(void) {
   esp_log_level_set("transport", ESP_LOG_VERBOSE);
   esp_log_level_set("outbox", ESP_LOG_VERBOSE);
 
+  // configure watchdog for this task
+  ESP_LOGI(TAG, "Setting up watchdog");
   const esp_task_wdt_config_t wdt_config = {
-      .timeout_ms = 15000, // 15 seconds
+      .timeout_ms = 45000, // 15 seconds
       .idle_core_mask = 0,
       .trigger_panic = true,
   };
   esp_task_wdt_reconfigure(&wdt_config);
-  esp_task_wdt_add(nullptr); // NULL = current task (main task)
+  esp_task_wdt_add(nullptr);
 
-  gpio_set_direction(LED_GPIO,GPIO_MODE_OUTPUT);
+  // set valve gpio direction
+  gpio_set_direction(VALVE_GPIO, GPIO_MODE_OUTPUT);
+  gpio_set_level(VALVE_GPIO, 0);
 
-  rtc_gpio_hold_dis(GPIO_NUM_17);
-  rtc_gpio_set_level(GPIO_NUM_17, 0);
-  rtc_gpio_deinit(GPIO_NUM_17);
-
-  // Initialize NVS
+  // Initialize NVS stuff
+  ESP_LOGI(TAG, "Attempting to initialise NVS shit");
   esp_err_t ret = nvs_flash_init();
   if (ret == ESP_ERR_NVS_NO_FREE_PAGES ||
       ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
@@ -76,52 +67,23 @@ void app_main(void) {
   }
   ESP_ERROR_CHECK(ret);
 
-  // init wifi
-  lte_connect();
-
+  // set timezone to utc
   setenv("TZ", "UTC", 1);
   tzset();
 
-  esp_sntp_config_t config = ESP_NETIF_SNTP_DEFAULT_CONFIG("gr.pool.ntp.org");
-  esp_netif_sntp_init(&config);
+  // init network interface stuff
+  ESP_LOGI(TAG, "Attempting to init network interface shit");
+  esp_netif_init();
+  esp_event_loop_create_default();
+  lte_init();
 
-  if (esp_netif_sntp_sync_wait(pdMS_TO_TICKS(10000)) != ESP_OK) {
-    ESP_LOGE(TAG, "Failed to update system time within 10s timeout");
-  } else {
-    ESP_LOGI(TAG, "System time updated from gr.pool.ntp.org!");
-  }
+  // create fetch task
+  BaseType_t const fetch_task_returned =
+      xTaskCreate(fetch_task, "INTERNET_STUFF_FETCH_TASK", 8192, NULL, 0, &fetch_task_handle);
 
-  // mqtt
-  const esp_mqtt_client_handle_t client = mqtt_app_start();
-
-  xEventGroupWaitBits(mqtt_event_group, MQTT_CONNECTED_BIT, pdFALSE, pdFALSE,
-                      portMAX_DELAY);
-  ESP_LOGI(TAG, "NOW CALLING shadow_init()");
-  shadow_init(client);
-
-  xEventGroupWaitBits(shadow_event_group,
-                      SHADOW_SUBSCRIBED_TO_ACCEPTED_TOPIC_BIT |
-                          SHADOW_SUBSCRIBED_TO_REJECTED_TOPIC_BIT,
-                      pdFALSE, pdFALSE, portMAX_DELAY);
-  ESP_LOGI(TAG, "NOW CALLING shadow_get()");
-  shadow_get(client);
-
-  scheduler_result_t scheduler_result;
-
-  const int result = scheduler_get_next_action(&scheduler_result);
-
-  if (result == 1) {
-    if (scheduler_result.should_water) {
-      ESP_LOGI(TAG, "ENTERED IRRIGATION WINDOW - Watering for: %ds", scheduler_result.water_duration_s);
-      rtc_gpio_init(GPIO_NUM_17);
-      rtc_gpio_set_direction(GPIO_NUM_17, RTC_GPIO_MODE_OUTPUT_ONLY);
-      rtc_gpio_set_level(GPIO_NUM_17, 1);  // open valve
-      rtc_gpio_hold_en(GPIO_NUM_17);
-      esp_sleep_enable_timer_wakeup(scheduler_result.water_duration_s * 1000000ULL);
-      esp_deep_sleep_start();
-    } else {
-      ESP_LOGW(TAG, "ENTERING DEEP SLEEP FOR: %ds", scheduler_result.sleep_duration_s);
-      esp_deep_sleep((scheduler_result.sleep_duration_s) * 1000000ULL);
-    }
+  // explode completely if task couldnt be created
+  if (fetch_task_returned != pdPASS) {
+    ESP_LOGE(TAG, "Failed to create fetch task");
+    abort();
   }
 }
