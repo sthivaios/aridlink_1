@@ -49,36 +49,61 @@ static void on_ip_event(void *arg, esp_event_base_t base, int32_t event_id, void
     }
 }
 
-void lte_connect(void) {
-    // wake modem up
+// set parameter to true to wake the modem up or false to put modem to sleep
+void modem_wakeup_or_sleep(const bool wakeup) {
+    static const char *SUB_TAG = "modem_power_control";
     gpio_set_direction(GPIO_NUM_4, GPIO_MODE_OUTPUT);
     gpio_set_level(GPIO_NUM_4, 1);
-    ESP_LOGI(TAG, "Stand by for modem wakeup...");
-    vTaskDelay(pdMS_TO_TICKS(2000));
+    if (wakeup) {
+        ESP_LOGI(SUB_TAG, "Stand by while the modem wakes up...");
+    } else {
+        ESP_LOGI(SUB_TAG, "Stand by while the modem goes to sleep...");
+    }
+    vTaskDelay(pdMS_TO_TICKS(wakeup ? 2000 : 6500));
     gpio_set_level(GPIO_NUM_4, 0);
-    vTaskDelay(pdMS_TO_TICKS(7500));
+    vTaskDelay(pdMS_TO_TICKS(wakeup ? 7500 : 2000));
+    if (wakeup) {
+        ESP_LOGI(SUB_TAG, "The modem should now be awake.");
+    } else {
+        ESP_LOGI(SUB_TAG, "The modem should now be eeping.");
+    }
+}
 
+void lte_init(void) {
+    ESP_LOGI(TAG, "Hello from inside the lte_connect() function");
     esp_log_level_set("esp-modem", ESP_LOG_VERBOSE);
-    esp_log_level_set("*", ESP_LOG_INFO);
+    esp_log_level_set("*", ESP_LOG_DEBUG);
 
+    ESP_LOGI(TAG, "Created event group");
     s_event_group = xEventGroupCreate();
 
+    ESP_LOGI(TAG, "Setup configs");
     esp_netif_config_t netif_cfg = ESP_NETIF_DEFAULT_PPP();
+
+    ESP_LOGI(TAG, "Create network interface");
     esp_netif_t *netif = esp_netif_new(&netif_cfg);
 
+    ESP_LOGI(TAG, "Setup DTE config");
     esp_modem_dte_config_t dte_config = ESP_MODEM_DTE_DEFAULT_CONFIG();
     dte_config.uart_config.tx_io_num = 16;
     dte_config.uart_config.rx_io_num = 15;
     dte_config.uart_config.baud_rate = 115200;
 
+    ESP_LOGI(TAG, "Create DCE config");
     esp_modem_dce_config_t dce_config = ESP_MODEM_DCE_DEFAULT_CONFIG("internet");
 
+    ESP_LOGI(TAG, "Register event handler");
     esp_event_handler_register(IP_EVENT, ESP_EVENT_ANY_ID, on_ip_event, NULL);
 
+    ESP_LOGI(TAG, "Create new modem object");
     dce = esp_modem_new_dev(ESP_MODEM_DCE_SIM7600, &dte_config, &dce_config, netif);
+}
 
+void lte_connect(void) {
+    ESP_LOGI(TAG, "Create IMEI char buffer");
     char imei[32];
 
+    ESP_LOGI(TAG, "Attempting to connect to the modem...");
     int modem_contact_attempts = 0;
     while (esp_modem_get_imei(dce, imei) == ESP_FAIL) {
         vTaskDelay(1000);
@@ -95,8 +120,6 @@ void lte_connect(void) {
 
     esp_err_t err = esp_modem_set_mode(dce, ESP_MODEM_MODE_DATA);
     ESP_LOGI(TAG, "set_mode result: %s", esp_err_to_name(err));
-
-    // esp_modem_set_mode(dce, ESP_MODEM_MODE_DATA);
 
     ESP_LOGI(TAG, "Waiting for IP...");
     xEventGroupWaitBits(s_event_group, GOT_IP_BIT, pdFALSE, pdFALSE, portMAX_DELAY);
