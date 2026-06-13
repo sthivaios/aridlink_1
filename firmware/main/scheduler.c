@@ -178,6 +178,8 @@ void irrigation_scheduler(void *pvParameters) {
 
   for (;;) {
 
+    valve_state = false;
+
     if (schedule_changed) {
       ESP_LOGI(TAG, "Schedule change detected!");
       scheduler_unload_nvs_into_ram();
@@ -195,8 +197,7 @@ void irrigation_scheduler(void *pvParameters) {
       if (now >= irrigation_timestamp &&
           now < (irrigation_timestamp + irrigation_window.duration_s)) {
         valve_state = true;
-      } else {
-        valve_state = false;
+        break;
       }
     }
 
