@@ -84,7 +84,6 @@ Shadow_Get_Status_t shadow_get(esp_mqtt_client_handle_t client) {
   }
 
   // shadow_buffer now contains the shadow
-  ESP_LOGI(TAG, "Calling ");
   if (scheduler_load_from_json_to_nvs(shadow_buffer) != LOAD_JSON_TO_NVS_SUCCESS) {
     return SHADOW_GET_FAILED_TO_NVS;
   };
