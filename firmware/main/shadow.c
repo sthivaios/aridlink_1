@@ -43,13 +43,13 @@ static const char *TAG = "device_shadow_handler";
 Shadow_Init_Status_t shadow_init(esp_mqtt_client_handle_t client) {
   shadow_event_group = xEventGroupCreate();
 
-  if (esp_mqtt_client_subscribe(client, SHADOW_ACCEPTED_TOPIC, 0) != 0) {
+  if (esp_mqtt_client_subscribe(client, SHADOW_ACCEPTED_TOPIC, 0) < 0) {
     ESP_LOGE(TAG, "Failed to subscribe to the accepted topic!");
     return SHADOW_INIT_FAILED_TO_SUB_TO_ACCEPTED;
   }
   ESP_LOGI(TAG, "Successfully subscribed to the accepted topic!");
 
-  if (esp_mqtt_client_subscribe(client, SHADOW_REJECTED_TOPIC, 0) != 0) {
+  if (esp_mqtt_client_subscribe(client, SHADOW_REJECTED_TOPIC, 0) < 0) {
     ESP_LOGE(TAG, "Failed to subscribe to the rejected topic!");
     return SHADOW_INIT_FAILED_TO_SUB_TO_REJECTED;
   }
