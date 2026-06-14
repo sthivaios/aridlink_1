@@ -30,10 +30,21 @@
 #define SHADOW_SUBSCRIBED_TO_ACCEPTED_TOPIC_BIT BIT2
 #define SHADOW_SUBSCRIBED_TO_REJECTED_TOPIC_BIT BIT3
 
-extern EventGroupHandle_t shadow_event_group;
+typedef enum {
+  SHADOW_INIT_SUCCESS,
+  SHADOW_INIT_FAILED_TO_SUB_TO_ACCEPTED,
+  SHADOW_INIT_FAILED_TO_SUB_TO_REJECTED,
+} Shadow_Init_Status_t;
+Shadow_Init_Status_t shadow_init(esp_mqtt_client_handle_t client);
 
-void shadow_init(esp_mqtt_client_handle_t client);
-void shadow_get(esp_mqtt_client_handle_t client);
-void set_shadow_buffer(const char *data, int len);
+typedef enum {
+  SHADOW_GET_SUCCESS,
+  SHADOW_GET_FAILED_TO_PUBLISH_GET_REQUEST,
+  SHADOW_GET_TIMED_OUT_WAITING_FOR_REPLY,
+  SHADOW_GET_FAILED_TO_NVS
+} Shadow_Get_Status_t;
+Shadow_Get_Status_t shadow_get(esp_mqtt_client_handle_t client);
+
+extern EventGroupHandle_t shadow_event_group;
 
 #endif // ARIDLINK_SHADOWS_H
