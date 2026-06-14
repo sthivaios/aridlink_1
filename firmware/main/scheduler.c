@@ -96,7 +96,7 @@ Load_JSON_To_NVS_Status_t scheduler_load_from_json_to_nvs(const char *json) {
   nvs_close(handle);
 
   // check if the schedule changed, and if it did, set the flag so the scheduler knows
-  if (strcmp(schedule_string, current_schedule) == 0) {
+  if (strcmp(schedule_string, current_schedule) != 0) {
     schedule_changed = true;
   }
 
