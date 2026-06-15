@@ -28,6 +28,10 @@ EventGroupHandle_t shadow_event_group;
 
 static const char *TAG = "device_shadow_handler";
 
+void shadow_eventgroup_init(void) {
+  shadow_event_group = xEventGroupCreate();
+}
+
 /**
  * Creates the RTOS event group for shadow-related stuff, and subscribes to the
  * two shadow AWS topics.
@@ -41,8 +45,6 @@ static const char *TAG = "device_shadow_handler";
  * topic subscription fails
  */
 Shadow_Init_Status_t shadow_init(esp_mqtt_client_handle_t client) {
-  shadow_event_group = xEventGroupCreate();
-
   if (esp_mqtt_client_subscribe(client, SHADOW_ACCEPTED_TOPIC, 0) < 0) {
     ESP_LOGE(TAG, "Failed to subscribe to the accepted topic!");
     return SHADOW_INIT_FAILED_TO_SUB_TO_ACCEPTED;

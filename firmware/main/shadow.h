@@ -45,6 +45,8 @@ typedef enum {
 } Shadow_Get_Status_t;
 Shadow_Get_Status_t shadow_get(esp_mqtt_client_handle_t client);
 
+void shadow_eventgroup_init(void);
+
 extern EventGroupHandle_t shadow_event_group;
 
 #endif // ARIDLINK_SHADOWS_H

@@ -189,17 +189,21 @@ Unload_Schedule_Into_RAM_Status_t scheduler_unload_nvs_into_ram() {
     parsed_schedule_length++;
   }
 
-  ESP_LOGW(TAG, "UPDATED SCHEDULE FOLLOWS:");
-  ESP_LOGW(TAG, "==================================================");
-  for (int i = 0; i < parsed_schedule_length; i++) {
-    const Irrigation_Window_t irrigation_window = parsed_schedule[i];
-    ESP_LOGW(TAG, "%d) Starts at %02d:%02d, and lasts for %d seconds", i,
-             irrigation_window.start_hour, irrigation_window.start_minute,
-             irrigation_window.duration_s);
+  if (schedule_changed) {
+    ESP_LOGW(TAG, "UPDATED SCHEDULE FOLLOWS:");
+    ESP_LOGW(TAG, "==================================================");
+    for (int i = 0; i < parsed_schedule_length; i++) {
+      const Irrigation_Window_t irrigation_window = parsed_schedule[i];
+      ESP_LOGW(TAG, "%d) Starts at %02d:%02d, and lasts for %d seconds", i,
+               irrigation_window.start_hour, irrigation_window.start_minute,
+               irrigation_window.duration_s);
+    }
   }
 
   // reset schedule changed flag since it was handled here
   schedule_changed = false;
+
+  cJSON_Delete((cJSON *)root);
 
   return UNLOAD_SCHEDULE_INTO_RAM_SUCCESS;
 }

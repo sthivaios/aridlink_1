@@ -52,7 +52,9 @@ void fetch_task(void *pvParameters) {
   // ReSharper disable once CppDFAEndlessLoop
   for (;;) {
     esp_task_wdt_add(nullptr);
-    uint64_t next_delay_ms = SECONDS(40);
+    uint64_t next_delay_ms = SECONDS(10);
+
+    ESP_LOGW(TAG, "Initializing MQTT... (free heap: %lu)", esp_get_free_heap_size());
 
     // wake modem up
     modem_wakeup_or_sleep(true);
@@ -97,6 +99,7 @@ void fetch_task(void *pvParameters) {
     ESP_LOGI(TAG, "Making the MQTT client explode");
     esp_mqtt_client_disconnect(client);
     esp_mqtt_client_stop(client);
+    esp_mqtt_client_destroy(client);
 
 cleanup_no_client:
     // make modem sleepy sleep

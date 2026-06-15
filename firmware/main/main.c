@@ -29,6 +29,7 @@
 #include "nvs_flash.h"
 #include "portmacro.h"
 #include "scheduler.h"
+#include "shadow.h"
 
 #include <time.h>
 
@@ -62,6 +63,8 @@ void app_main(void) {
   esp_netif_init();
   esp_event_loop_create_default();
   lte_init();
+
+  shadow_eventgroup_init();
 
   // create fetch task
   BaseType_t const fetch_task_returned =
