@@ -33,6 +33,10 @@ extern const uint8_t device_cert_pem_end[] asm("_binary_device_cert_pem_end");
 extern const uint8_t device_key_pem_start[] asm("_binary_device_key_pem_start");
 extern const uint8_t device_key_pem_end[] asm("_binary_device_key_pem_end");
 
+void mqtt_init_eventgroup(void) {
+  mqtt_event_group = xEventGroupCreate();
+}
+
 /*
  * @brief Event handler registered to receive MQTT events
  *
@@ -123,8 +127,6 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base,
 }
 
 esp_mqtt_client_handle_t mqtt_app_start(void) {
-  mqtt_event_group = xEventGroupCreate();
-
   const esp_mqtt_client_config_t mqtt_cfg = {
       .broker =
           {

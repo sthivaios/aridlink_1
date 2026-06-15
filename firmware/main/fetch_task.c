@@ -101,6 +101,8 @@ void fetch_task(void *pvParameters) {
     esp_mqtt_client_stop(client);
     esp_mqtt_client_destroy(client);
 
+    xEventGroupClearBits(mqtt_event_group, MQTT_CONNECTED_BIT);
+
 cleanup_no_client:
     // make modem sleepy sleep
     esp_modem_set_mode(get_dce(), ESP_MODEM_MODE_COMMAND);

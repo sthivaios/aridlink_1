@@ -39,5 +39,6 @@ extern EventGroupHandle_t mqtt_event_group;
 extern char shadow_buffer[16384];
 
 esp_mqtt_client_handle_t mqtt_app_start(void);
+void mqtt_init_eventgroup(void);
 
 #endif // ARIDLINK_MQTT_H

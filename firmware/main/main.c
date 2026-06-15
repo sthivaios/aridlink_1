@@ -26,6 +26,7 @@
 #include "esp_task_wdt.h"
 #include "fetch_task.h"
 #include "lte.h"
+#include "mqtt.h"
 #include "nvs_flash.h"
 #include "portmacro.h"
 #include "scheduler.h"
@@ -63,6 +64,8 @@ void app_main(void) {
   esp_netif_init();
   esp_event_loop_create_default();
   lte_init();
+
+  mqtt_init_eventgroup();
 
   shadow_eventgroup_init();
 
