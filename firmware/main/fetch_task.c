@@ -44,8 +44,8 @@ void fetch_task(void *pvParameters) {
 
   ESP_LOGI(TAG, "Setting up watchdog");
   const esp_task_wdt_config_t wdt_config = {
-    .timeout_ms = 300000,
-    .idle_core_mask = 0,
+      .timeout_ms = 300000,
+      .idle_core_mask = 0,
   };
   esp_task_wdt_reconfigure(&wdt_config);
 
@@ -54,7 +54,8 @@ void fetch_task(void *pvParameters) {
     esp_task_wdt_add(nullptr);
     uint64_t next_delay_ms = SECONDS(10);
 
-    ESP_LOGW(TAG, "Initializing MQTT... (free heap: %lu)", esp_get_free_heap_size());
+    ESP_LOGW(TAG, "Initializing MQTT... (free heap: %lu)",
+             esp_get_free_heap_size());
 
     // wake modem up
     modem_wakeup_or_sleep(true);
@@ -102,15 +103,20 @@ void fetch_task(void *pvParameters) {
     esp_mqtt_client_destroy(client);
 
     xEventGroupClearBits(mqtt_event_group, MQTT_CONNECTED_BIT);
+    xEventGroupClearBits(shadow_event_group,
+                         SHADOW_GET_ACCEPTED_BIT | SHADOW_GET_REJECTED_BIT |
+                             SHADOW_SUBSCRIBED_TO_ACCEPTED_TOPIC_BIT |
+                             SHADOW_SUBSCRIBED_TO_REJECTED_TOPIC_BIT);
 
-cleanup_no_client:
+  cleanup_no_client:
     // make modem sleepy sleep
     esp_modem_set_mode(get_dce(), ESP_MODEM_MODE_COMMAND);
     modem_wakeup_or_sleep(false);
 
     // rerun later
     esp_task_wdt_delete(nullptr);
-    ESP_LOGI(TAG, "Task standing by for %llu seconds", (unsigned long long)(next_delay_ms / 1000));
+    ESP_LOGI(TAG, "Task standing by for %llu seconds",
+             (unsigned long long)(next_delay_ms / 1000));
     vTaskDelay(pdMS_TO_TICKS(next_delay_ms));
   }
 }
