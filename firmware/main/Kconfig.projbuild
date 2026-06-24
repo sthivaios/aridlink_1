@@ -1,0 +1,15 @@
+menu "AridLink Configuration"
+
+    config ARIDLINK_AWS_ENDPOINT
+        string "AWS IoT Endpoint"
+        default ""
+
+    config PPP_CONN_MAX_RETRY
+        int "PPP over LTE max retries"
+        default 3
+
+    config LTE_MODEM_UART_BAUD_RATE
+        int "LTE modem UART baud rate"
+        default 115200
+
+endmenu
