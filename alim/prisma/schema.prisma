@@ -1,8 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../lib/generated/prisma"
@@ -10,4 +8,53 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+model Device {
+  imei      String    @id
+  name      String?
+  tokenHash String
+  approved  Boolean   @default(false)
+  schedule  Json      @default("[]")
+  firstSeen DateTime?
+  lastSeen  DateTime?
+  createdAt DateTime  @default(now())
+
+  heartbeats  Heartbeat[]
+  valveEvents ValveEvent[]
+}
+
+model Heartbeat {
+  id        Int      @id @default(autoincrement())
+  deviceId  String
+  rssi      Int?
+  ber       Int?
+  valveOpen Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  device Device @relation(fields: [deviceId], references: [imei], onDelete: Cascade)
+
+  @@index([deviceId, createdAt])
+}
+
+model ValveEvent {
+  id       Int       @id @default(autoincrement())
+  deviceId String
+  openedAt DateTime
+  closedAt DateTime?
+
+  device Device @relation(fields: [deviceId], references: [imei], onDelete: Cascade)
+
+  @@index([deviceId, openedAt])
+}
+
+model ApiKey {
+  id        String   @id @default(cuid())
+  keyPrefix String
+  keyHash   String
+  label     String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@index([keyPrefix])
 }
