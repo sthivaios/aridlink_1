@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { authenticateDevice } from "@/lib/authenticate-device";
 import { tryCatch } from "@/lib/try-catch";
-import { AlimError, internal_server_error_response } from "@/lib/errors/errors";
+import {
+  AlimError,
+  alimErrorResponse,
+  UnhandledInternalServerException,
+} from "@/lib/errors/errors";
 
 export async function GET(request: Request) {
   const { data, error } = await tryCatch(authenticateDevice(request));
@@ -11,19 +15,16 @@ export async function GET(request: Request) {
     // check if the error is an ALIM error class
     if (error instanceof AlimError) {
       // return it if it is
-      return NextResponse.json({
-        error_code: error.code,
-        error_message: error.message
-      }, { status: error.http_code })
+      return alimErrorResponse(error);
     } else {
       // return the internal unhandled error response if its not an alim error
-      return internal_server_error_response;
+      return alimErrorResponse(new UnhandledInternalServerException());
     }
   }
 
   if (!data) {
     // return the internal unhandled error response if the data is somehow null
-    return internal_server_error_response;
+    return alimErrorResponse(new UnhandledInternalServerException());
   }
 
   // return the schedule and info about it
