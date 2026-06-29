@@ -5,5 +5,5 @@ allowBuilds:
   unrs-resolver: true
   msw: false
   esbuild: true
-  '@prisma/engines': set this to true or false
-  prisma: set this to true or false
+  '@prisma/engines': true
+  prisma: true
