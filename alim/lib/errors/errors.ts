@@ -12,11 +12,20 @@ export class AlimError extends Error {
   }
 }
 
-export const internal_server_error_response = NextResponse.json(
-  {
-    error_code: "ALE-99-9999",
-    error_message:
+export class UnhandledInternalServerException extends AlimError {
+  constructor() {
+    super(
       "Internal unhandled server exception. You should report this, and describe what you were doing at aridlink@sthivaios.dev.",
-  },
-  { status: 500 }
-);
+      "99-9999",
+      500
+    );
+    this.name = "UnhandledInternalServerException";
+  }
+}
+
+export function alimErrorResponse(err: AlimError) {
+  return NextResponse.json(
+    { error_code: err.code, error_message: err.message },
+    { status: err.http_code }
+  );
+}
