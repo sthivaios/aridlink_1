@@ -25,12 +25,14 @@ model Device {
 }
 
 model Heartbeat {
-  id        Int      @id @default(autoincrement())
-  deviceId  String
-  rssi      Int?
-  ber       Int?
-  valveOpen Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id                 Int      @id @default(autoincrement())
+  deviceId           String
+  rssi               Int?
+  ber                Int?
+  valveOpen          Boolean  @default(false)
+  batteryVoltage     Decimal?
+  cabinetTemperature Decimal?
+  createdAt          DateTime @default(now())
 
   device Device @relation(fields: [deviceId], references: [imei], onDelete: Cascade)
 
