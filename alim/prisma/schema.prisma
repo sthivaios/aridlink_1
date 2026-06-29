@@ -11,14 +11,15 @@ datasource db {
 }
 
 model Device {
-  imei      String    @id
-  name      String?
-  keySHA256 String
-  approved  Boolean   @default(false)
-  schedule  Json      @default("[]")
-  firstSeen DateTime?
-  lastSeen  DateTime?
-  createdAt DateTime  @default(now())
+  imei                String    @id
+  name                String?
+  keySHA256           String
+  approved            Boolean   @default(false)
+  schedule            Json      @default("[]")
+  firstSeen           DateTime?
+  lastSeen            DateTime?
+  scheduleLastUpdated DateTime?
+  createdAt           DateTime  @default(now())
 
   heartbeats  Heartbeat[]
   valveEvents ValveEvent[]
