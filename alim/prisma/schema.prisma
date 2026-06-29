@@ -13,7 +13,7 @@ datasource db {
 model Device {
   imei      String    @id
   name      String?
-  tokenHash String
+  keySHA256 String
   approved  Boolean   @default(false)
   schedule  Json      @default("[]")
   firstSeen DateTime?
