@@ -2,19 +2,40 @@ import { NextResponse } from "next/server"
 import { tryCatch } from "@/lib/try-catch"
 import prisma from "@/lib/prismacilent"
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/client"
+import { authenticateDevice } from "@/lib/authenticate-device";
+import {
+  AlimError,
+  alimErrorResponse,
+  UnhandledInternalServerException,
+} from "@/lib/errors/errors";
+import { HeartbeatDeviceUnregisteredOrInvalid, HeartbeatLoggingError } from "@/lib/errors/heartbeat-errors";
 
 export async function POST(request: Request) {
-  const { imei, rssi, ber, valveOpen, batteryVoltage, cabinetTemperature } = await request.json();
-  console.log(imei)
+  const { rssi, ber, valveOpen, batteryVoltage, cabinetTemperature } = await request.json();
 
-  if (!imei) {
-    return NextResponse.json({ error: "Missing IMEI from body! ALIM needs to know which device to post a heartbeat for." }, { status: 400 })
+  const { data: authenticationData, error: authenticationError } = await tryCatch(authenticateDevice(request));
+
+  // check if the device authentication errored
+  if (authenticationError) {
+    // check if the error is an ALIM error class
+    if (authenticationError instanceof AlimError) {
+      // return it if it is
+      return alimErrorResponse(authenticationError);
+    } else {
+      // return the internal unhandled error response if its not an alim error
+      return alimErrorResponse(new UnhandledInternalServerException());
+    }
+  }
+
+  if (!authenticationData) {
+    // return the internal unhandled error response if the data is somehow null
+    return alimErrorResponse(new UnhandledInternalServerException());
   }
 
   const {data, error} = await tryCatch(
     prisma.heartbeat.create({
       data: {
-        imei,
+        imei: authenticationData.imei,
         rssi,
         ber,
         valveOpen,
@@ -24,25 +45,15 @@ export async function POST(request: Request) {
     })
   );
 
+  if (
+    error instanceof PrismaClientKnownRequestError &&
+    error.code === "P2003"
+  ) {
+    return alimErrorResponse(new HeartbeatDeviceUnregisteredOrInvalid());
+  }
+
   if (error || data == null) {
-    console.error(error);
-    if (error instanceof PrismaClientKnownRequestError) {
-      if (error.code == "P2003") {
-        return NextResponse.json(
-          {
-            error: "A device with the provided IMEI does not exist on the ALIM database. Go through device onboarding before posting a heartbeat. Refer to the documentation.",
-          },
-          { status: 404 }
-        )
-      }
-    }
-    return NextResponse.json(
-      {
-        error:
-          "The heartbeat could not be registered.",
-      },
-      { status: 404 }
-    )
+    return alimErrorResponse(new HeartbeatLoggingError());
   }
 
   return NextResponse.json(data, {status: 200});
