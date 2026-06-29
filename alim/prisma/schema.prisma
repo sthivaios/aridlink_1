@@ -26,7 +26,7 @@ model Device {
 
 model Heartbeat {
   id                 Int      @id @default(autoincrement())
-  deviceId           String
+  imei               String
   rssi               Int?
   ber                Int?
   valveOpen          Boolean  @default(false)
@@ -34,20 +34,20 @@ model Heartbeat {
   cabinetTemperature Decimal?
   createdAt          DateTime @default(now())
 
-  device Device @relation(fields: [deviceId], references: [imei], onDelete: Cascade)
+  device Device @relation(fields: [imei], references: [imei], onDelete: Cascade)
 
-  @@index([deviceId, createdAt])
+  @@index([imei, createdAt])
 }
 
 model ValveEvent {
   id       Int       @id @default(autoincrement())
-  deviceId String
+  imei     String
   openedAt DateTime
   closedAt DateTime?
 
-  device Device @relation(fields: [deviceId], references: [imei], onDelete: Cascade)
+  device Device @relation(fields: [imei], references: [imei], onDelete: Cascade)
 
-  @@index([deviceId, openedAt])
+  @@index([imei, openedAt])
 }
 
 model ApiKey {
