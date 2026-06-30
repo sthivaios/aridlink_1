@@ -1,30 +1,39 @@
-import { Geist, Geist_Mono, Inter, Nunito_Sans } from "next/font/google"
+import { Geist, Geist_Mono, Inter, Nunito_Sans } from "next/font/google";
 
-import "./globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
+import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
 import { cn } from "@/lib/utils";
+import { Toaster } from "@/components/ui/sonner";
 
-const nunitoSans = Nunito_Sans({subsets:['latin'],variable:'--font-sans'})
+const nunitoSans = Nunito_Sans({ subsets: ["latin"], variable: "--font-sans" });
 
 const fontMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
-})
+});
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn("antialiased", fontMono.variable, "font-sans", nunitoSans.variable)}
+      className={cn(
+        "antialiased",
+        fontMono.variable,
+        "font-sans",
+        nunitoSans.variable
+      )}
     >
       <body>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          {children}
+          <Toaster richColors={true} position="top-center"/>
+        </ThemeProvider>
       </body>
     </html>
-  )
+  );
 }
