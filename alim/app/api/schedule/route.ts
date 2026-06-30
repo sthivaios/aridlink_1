@@ -29,11 +29,7 @@ export async function GET(request: Request) {
 
   // return the schedule and info about it
   return NextResponse.json({
-    device: {
-      device_imei: data.imei,
-      device_name: data.name,
-      schedule_updated: data.scheduleLastUpdated
-    },
+    schedule_version: data.scheduleVersion,
     schedule: data.schedule
   });
 }
