@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { Metadata } from "next";
 
-const nunitoSans = Nunito_Sans({ subsets: ["latin"], variable: "--font-sans" });
+const nunitoSans = Nunito_Sans({subsets:['latin'],variable:'--font-sans'});
 
 const fontMono = Geist_Mono({
   subsets: ["latin"],
@@ -40,7 +40,7 @@ export default function RootLayout({
       <body>
         <ThemeProvider>
           {children}
-          <Toaster richColors={true} position="top-center" />
+          <Toaster richColors={true} position="bottom-right" />
         </ThemeProvider>
       </body>
     </html>
