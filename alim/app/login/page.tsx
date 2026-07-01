@@ -8,6 +8,7 @@ import { authClient } from "@/lib/auth-client";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import Image from "next/image";
 
 export default function LoginPage() {
   const [authenticated, setAuthenticated] = useState(false);
@@ -53,15 +54,13 @@ export default function LoginPage() {
       <aside className="relative hidden flex-col justify-between overflow-hidden border-r border-border bg-sidebar p-10 lg:flex lg:w-[44%]">
         <div className="grid-paper pointer-events-none absolute inset-0 opacity-70" />
 
-        <div className="relative flex items-center gap-2.5">
-          {/*<div className="flex h-9 w-9 items-center justify-center bg-primary text-primary-foreground">
-            <Droplets className="h-4.5 w-4.5" strokeWidth={2.5} />
-          </div>*/}
+        <div className="relative flex flex-row items-center gap-2.5">
+          <Image src="/aridlink_logo.png" alt="The AridLink Logo" width={50} height={50}></Image>
           <div className="leading-tight">
-            <div className="font-mono text-sm font-bold tracking-tight">
+            <div className="font-mono text-xl font-bold tracking-tight">
               ALIM
             </div>
-            <div className="font-mono text-[10px] tracking-[0.14em] text-muted-foreground uppercase">
+            <div className="font-mono text-[13px] tracking-[0.14em] text-muted-foreground uppercase">
               AridLink Irrigation Manager
             </div>
           </div>
@@ -77,8 +76,14 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <div className="relative flex items-center gap-2 font-mono text-[11px] text-muted-foreground">
-          <span>alim.local · self-hosted · v0.9.2</span>
+        <div className="relative flex flex-col items-start justify-center gap-2 font-mono text-[13px] text-muted-foreground">
+          <span>AridLink Irrigation Manager v0.9.2</span>
+          <span className="font-bold">
+            Copyright © 2026 Stratos Thivaios<br/>ALIM is free software under the{" "}
+            <Link className="text-blue-400 hover:underline hover:text-foreground transition-all duration-200" href="https://www.gnu.org/licenses/agpl-3.0.html">
+              GNU Affero General Public License v3
+            </Link>
+          </span>
         </div>
       </aside>
 
