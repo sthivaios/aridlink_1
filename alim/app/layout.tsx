@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
+import { Metadata } from "next";
 
 const nunitoSans = Nunito_Sans({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -11,6 +12,13 @@ const fontMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
 });
+
+export const metadata: Metadata = {
+  title: "AridLink Irrigation Manager",
+  icons: {
+    icon: "/aridlink_logo.png"
+  }
+};
 
 export default function RootLayout({
   children,
@@ -28,10 +36,11 @@ export default function RootLayout({
         nunitoSans.variable
       )}
     >
+      <link rel="icon" href="/app/favicon.ico" sizes="any" />
       <body>
         <ThemeProvider>
           {children}
-          <Toaster richColors={true} position="top-center"/>
+          <Toaster richColors={true} position="top-center" />
         </ThemeProvider>
       </body>
     </html>
