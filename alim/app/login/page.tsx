@@ -5,7 +5,7 @@ import { Droplets, ArrowRight, UserCheck, LogOut } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -43,19 +43,22 @@ export default function LoginPage() {
     setAuthenticated(false);
   }
 
-  const { data: session, isPending } = authClient.useSession();
+  const { data: session } = authClient.useSession();
 
   const isAuthenticated = !!session || authenticated;
 
-  // if (isPending) return null;
-
   return (
     <div className="flex min-h-screen flex-col bg-background lg:flex-row">
-      <aside className="relative hidden flex-col justify-between overflow-hidden border-r border-border bg-sidebar p-10 lg:flex lg:w-[44%]">
+      <aside className="relative hidden flex-col justify-between overflow-hidden border-r border-border bg-sidebar p-10 lg:flex lg:w-[65%]">
         <div className="grid-paper pointer-events-none absolute inset-0 opacity-70" />
 
         <div className="relative flex flex-row items-center gap-2.5">
-          <Image src="/aridlink_logo.png" alt="The AridLink Logo" width={50} height={50}></Image>
+          <Image
+            src="/aridlink_logo.png"
+            alt="The AridLink Logo"
+            width={50}
+            height={50}
+          ></Image>
           <div className="leading-tight">
             <div className="font-mono text-xl font-bold tracking-tight">
               ALIM
@@ -66,7 +69,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <div className="relative max-w-md">
+        <div className="feathered-blur-container relative max-w-md">
           <h2 className="font-mono text-2xl leading-tight font-bold tracking-tight text-balance">
             Welcome back to ALIM
           </h2>
@@ -79,8 +82,13 @@ export default function LoginPage() {
         <div className="relative flex flex-col items-start justify-center gap-2 font-mono text-[13px] text-muted-foreground">
           <span>AridLink Irrigation Manager v0.9.2</span>
           <span className="font-bold">
-            Copyright © 2026 Stratos Thivaios<br/>ALIM is free software under the{" "}
-            <Link className="text-blue-400 hover:underline hover:text-foreground transition-all duration-200" href="https://www.gnu.org/licenses/agpl-3.0.html">
+            Copyright © 2026 Stratos Thivaios
+            <br />
+            ALIM is free software under the{" "}
+            <Link
+              className="text-blue-400 transition-all duration-200 hover:text-foreground hover:underline"
+              href="https://www.gnu.org/licenses/agpl-3.0.html"
+            >
               GNU Affero General Public License v3
             </Link>
           </span>
@@ -122,9 +130,11 @@ export default function LoginPage() {
 
             {isAuthenticated ? (
               <div className="mt-8 flex flex-col items-center space-y-4">
-                <UserCheck color="teal"></UserCheck>
+                <UserCheck color="#00588A" height={50} width={50}></UserCheck>
                 <div className="flex w-full flex-col items-center justify-center">
-                  <p>Welcome back, {session?.user.name}!</p>
+                  <p className="font-bold">
+                    Welcome back, {session?.user.name}!
+                  </p>
                   <p>You have authenticated successfully.</p>
                 </div>
                 <p>Your available options:</p>
