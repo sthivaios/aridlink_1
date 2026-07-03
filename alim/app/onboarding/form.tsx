@@ -8,9 +8,9 @@ import { PasswordRequirement } from "@/components/password-requirement";
 import { useState } from "react";
 import { userSignup } from "@/app/onboarding/signup-action";
 import { toast } from "sonner";
+import { SubmitEvent } from "react";
 
-export function SignupForm(props: { submitCallbackFunction: () => void }) {
-  const [authenticated, setAuthenticated] = useState(false);
+export function SignupForm(props: { submitCallbackFunctionAction: () => void }) {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,7 +19,6 @@ export function SignupForm(props: { submitCallbackFunction: () => void }) {
     useState<boolean>(false);
   const [passwordFocused, setPasswordFocused] = useState<boolean>(false);
   const [passwordHidden, setPasswordHidden] = useState<boolean>(true);
-  const [signupError, setSignupError] = useState<boolean>(false);
 
   const requirements = {
     validEmail: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),
@@ -40,10 +39,10 @@ export function SignupForm(props: { submitCallbackFunction: () => void }) {
     setConfirmPassword("");
   }
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    const { data, error } = await userSignup({
+    const { error } = await userSignup({
       email,
       password,
       fullName,
@@ -51,9 +50,8 @@ export function SignupForm(props: { submitCallbackFunction: () => void }) {
 
     if (!error) {
       clearFields();
-      setAuthenticated(true);
       toast.success("Account creation successful.");
-      props.submitCallbackFunction();
+      props.submitCallbackFunctionAction();
     } else {
       toast.error(error.message);
     }
