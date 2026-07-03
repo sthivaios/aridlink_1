@@ -1,3 +1,5 @@
+// noinspection JSUnusedGlobalSymbols
+
 import { AlimError } from "@/lib/errors/errors";
 
 export class DeviceAuthorizationError extends AlimError {
