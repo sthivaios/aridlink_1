@@ -4,6 +4,7 @@ import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { SubmitEvent } from "react";
 
 function LoginForm(props: {
   setAuthenticatedCallback: (arg0: boolean) => void;
@@ -16,7 +17,7 @@ function LoginForm(props: {
     setPassword("");
   }
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     const { error } = await authClient.signIn.email({
       email: email,
