@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { Metadata } from "next";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const nunitoSans = Nunito_Sans({subsets:['latin'],variable:'--font-sans'});
 
@@ -39,6 +40,9 @@ export default function RootLayout({
       <link rel="icon" href="/app/favicon.ico" sizes="any" />
       <body>
         <ThemeProvider>
+          <div className="fixed right-6 top-3 z-50">
+            <ThemeToggle />
+          </div>
           {children}
           <Toaster richColors={true} position="bottom-right" />
         </ThemeProvider>
