@@ -65,7 +65,7 @@ export default function LoginPage() {
         </div>
 
         <div className="relative">
-          <Footer />
+          <Footer alignment="left" />
         </div>
       </aside>
 

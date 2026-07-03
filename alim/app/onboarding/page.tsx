@@ -53,7 +53,7 @@ export default async function LoginPage() {
         </div>
 
         <div className="relative">
-          <Footer />
+          <Footer alignment="left" />
         </div>
       </aside>
 
@@ -78,7 +78,7 @@ export default async function LoginPage() {
                 Enter the details for your new operator account
               </p>
 
-              <SignupForm submitCallbackFunction={refreshRouter} />
+              <SignupForm submitCallbackFunctionAction={refreshRouter} />
             </>
           </div>
         </div>

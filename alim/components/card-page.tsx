@@ -10,7 +10,7 @@ function CardPage({ children }: { children: React.ReactNode }) {
         {children}
       </Card>
       <div className="fixed bottom-10 left-10 z-50">
-        <Footer />
+        <Footer alignment="left" />
       </div>
     </div>
   );
