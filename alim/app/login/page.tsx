@@ -1,56 +1,41 @@
 "use client";
 
-import Link from "next/link";
-import { Droplets, ArrowRight, UserCheck, LogOut } from "lucide-react";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { Input } from "@/components/ui/input";
+import { Droplets } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import Image from "next/image";
+import Footer from "@/components/footer";
+import LoggedInStuff from "@/app/login/logged-in-stuff";
+import { useEffect, useState } from "react";
+import LoginForm from "@/app/login/login-form";
+import { Spinner } from "@/components/ui/spinner";
+import { AnimatePresence, motion } from "framer-motion";
 
 export default function LoginPage() {
   const [authenticated, setAuthenticated] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  function clearFields() {
-    setEmail("");
-    setPassword("");
-  }
-
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const { error } = await authClient.signIn.email({
-      email: email,
-      password: password,
-    });
-
-    if (!error) {
-      clearFields();
-      setAuthenticated(true);
-      toast.success("Authentication successful!");
-    } else {
-      toast.error(error.message);
-    }
-  }
+  const [minDelayPassed, setMinDelayPassed] = useState(false);
 
   async function handleSingOut() {
     await authClient.signOut();
-    clearFields();
     toast.success("Logout successful!");
     setAuthenticated(false);
   }
 
-  const { data: session } = authClient.useSession();
+  const { data: session, isPending } = authClient.useSession();
+
+  useEffect(() => {
+    const timer = setTimeout(() => setMinDelayPassed(true), 400);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const showLoading = isPending || !minDelayPassed;
 
   const isAuthenticated = !!session || authenticated;
 
   return (
     <div className="flex min-h-screen flex-col bg-background lg:flex-row">
       <aside className="relative hidden flex-col justify-between overflow-hidden border-r border-border bg-sidebar p-10 lg:flex lg:w-[65%]">
-        <div className="grid-paper pointer-events-none absolute inset-0 opacity-70" />
+        <div className="topographic-paper pointer-events-none absolute inset-0 opacity-70" />
 
         <div className="relative flex flex-row items-center gap-2.5">
           <Image
@@ -79,19 +64,8 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <div className="relative flex flex-col items-start justify-center gap-2 font-mono text-[13px] text-muted-foreground">
-          <span>AridLink Irrigation Manager v0.9.2</span>
-          <span className="font-bold">
-            Copyright © 2026 Stratos Thivaios
-            <br />
-            ALIM is free software under the{" "}
-            <Link
-              className="text-blue-400 transition-all duration-200 hover:text-foreground hover:underline"
-              href="https://www.gnu.org/licenses/agpl-3.0.html"
-            >
-              GNU Affero General Public License v3
-            </Link>
-          </span>
+        <div className="relative">
+          <Footer />
         </div>
       </aside>
 
@@ -101,7 +75,6 @@ export default function LoginPage() {
           <span className="font-mono text-[11px] tracking-[0.16em] text-muted-foreground uppercase">
             Operator sign-in
           </span>
-          <ThemeToggle />
         </div>
 
         <div className="flex flex-1 items-center justify-center px-6 py-12">
@@ -117,101 +90,47 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {!isAuthenticated ? (
-              <>
-                <h1 className="font-mono text-xl font-bold tracking-tight">
-                  Authenticate
-                </h1>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Sign in to access the fleet console.
-                </p>
-              </>
-            ) : null}
-
-            {isAuthenticated ? (
-              <div className="mt-8 flex flex-col items-center space-y-4">
-                <UserCheck color="#00588A" height={50} width={50}></UserCheck>
-                <div className="flex w-full flex-col items-center justify-center">
-                  <p className="font-bold">
-                    Welcome back, {session?.user.name}!
-                  </p>
-                  <p>You have authenticated successfully.</p>
-                </div>
-                <p>Your available options:</p>
-                <Link
-                  href="/dashboard"
-                  className="flex h-10 w-full items-center justify-center gap-2 bg-primary font-mono text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+            <AnimatePresence mode="wait">
+              {showLoading ? (
+                <motion.div
+                  key="loading"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex flex-row items-center justify-center gap-6 font-mono text-xl"
                 >
-                  Head to dashboard
-                  <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
-                </Link>
-                <Button
-                  variant="outline"
-                  className="flex h-10 w-full items-center justify-center gap-2 font-mono text-sm font-semibold"
-                  onClick={handleSingOut}
+                  <Spinner className="h-8 w-8" />
+                  <p>Loading...</p>
+                </motion.div>
+              ) : isAuthenticated ? (
+                <motion.div
+                  key="loggedin"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
                 >
-                  Logout
-                  <LogOut className="h-4 w-4" strokeWidth={2.5} />
-                </Button>
-              </div>
-            ) : (
-              <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
-                <div className="space-y-1.5">
-                  <label
-                    htmlFor="email"
-                    className="font-mono text-[11px] tracking-[0.12em] text-muted-foreground uppercase"
-                  >
-                    Operator ID / email
-                  </label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="field-admin@alim.local"
-                    className="border-Input h-10 w-full border bg-card px-3 text-sm transition-colors outline-none placeholder:text-muted-foreground/60 focus:border-ring"
+                  <LoggedInStuff
+                    session={session}
+                    signOutCallback={handleSingOut}
                   />
-                </div>
-
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label
-                      htmlFor="password"
-                      className="font-mono text-[11px] tracking-[0.12em] text-muted-foreground uppercase"
-                    >
-                      Password
-                    </label>
-                    {/*<span className="font-mono text-[11px] text-primary hover:underline">*/}
-                    {/*  Reset*/}
-                    {/*</span>*/}
-                  </div>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••••••"
-                    className="border-Input h-10 w-full border bg-card px-3 text-sm transition-colors outline-none placeholder:text-muted-foreground/60 focus:border-ring"
-                  />
-                </div>
-
-                <Button
-                  type="submit"
-                  className="flex h-10 w-full items-center justify-center gap-2 bg-primary font-mono text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="loginform"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
                 >
-                  Authenticate
-                  <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
-                </Button>
-              </form>
-            )}
-
-            {/*<div className="my-6 flex items-center gap-3">
-              <span className="h-px flex-1 bg-border" />
-              <span className="font-mono text-[10px] tracking-[0.14em] text-muted-foreground uppercase">
-                or
-              </span>
-              <span className="h-px flex-1 bg-border" />
-            </div>*/}
+                  <h1 className="mb-4 font-mono text-xl font-bold tracking-tight">
+                    Authenticate
+                  </h1>
+                  <LoginForm setAuthenticatedCallback={setAuthenticated} />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </main>
