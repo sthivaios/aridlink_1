@@ -7,7 +7,7 @@ read -p "KEY LENGTH (INT) > " length
 bytes=$((length / 2))
 
 key=$(openssl rand -hex $bytes)
-hashed=$(echo $key | sha256)
+hashed=$(echo -n $key | sha256)
 
 echo KEY: $key
 echo SHA256: $hashed
