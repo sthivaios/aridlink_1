@@ -20,7 +20,6 @@ model Device {
   scheduleVersion         String    @default(uuid(7))
   scheduleVersionReported String
   firstSeen               DateTime?
-  lastSeen                DateTime?
   scheduleLastUpdated     DateTime?
   createdAt               DateTime  @default(now())
 
