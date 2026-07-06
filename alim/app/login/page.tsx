@@ -45,17 +45,15 @@ export default function LoginPage() {
             height={50}
           ></Image>
           <div className="leading-tight">
-            <div className="font-mono text-xl font-bold tracking-tight">
-              ALIM
-            </div>
-            <div className="font-mono text-[13px] tracking-[0.14em] text-muted-foreground uppercase">
+            <div className="text-xl font-bold tracking-tight">ALIM</div>
+            <div className="text-[13px] tracking-[0.14em] text-muted-foreground uppercase">
               AridLink Irrigation Manager
             </div>
           </div>
         </div>
 
         <div className="feathered-blur-container relative max-w-md">
-          <h2 className="font-mono text-2xl leading-tight font-bold tracking-tight text-balance">
+          <h2 className="text-2xl leading-tight font-bold tracking-tight text-balance">
             Welcome back to ALIM
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-pretty text-muted-foreground">
@@ -72,7 +70,7 @@ export default function LoginPage() {
       {/* Sign-in form */}
       <main className="flex flex-1 flex-col">
         <div className="flex h-14 items-center justify-between border-b border-border px-6">
-          <span className="font-mono text-[11px] tracking-[0.16em] text-muted-foreground uppercase">
+          <span className="text-[11px] tracking-[0.16em] text-muted-foreground uppercase">
             Operator sign-in
           </span>
         </div>
@@ -84,9 +82,7 @@ export default function LoginPage() {
                 <div className="flex h-9 w-9 items-center justify-center bg-primary text-primary-foreground">
                   <Droplets className="h-4.5 w-4.5" strokeWidth={2.5} />
                 </div>
-                <div className="font-mono text-sm font-bold tracking-tight">
-                  ALIM
-                </div>
+                <div className="text-sm font-bold tracking-tight">ALIM</div>
               </div>
             </div>
 
@@ -98,7 +94,7 @@ export default function LoginPage() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.2 }}
-                  className="flex flex-row items-center justify-center gap-6 font-mono text-xl"
+                  className="flex flex-row items-center justify-center gap-6 text-xl"
                 >
                   <Spinner className="h-8 w-8" />
                   <p>Loading...</p>
@@ -124,9 +120,12 @@ export default function LoginPage() {
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <h1 className="mb-4 font-mono text-xl font-bold tracking-tight">
-                    Authenticate
-                  </h1>
+                  <div className="mb-4 flex flex-col gap-0">
+                    <h1 className="text-xl font-bold tracking-tight">
+                      Authenticate
+                    </h1>
+                    <p>Log into your ALIM account</p>
+                  </div>
                   <LoginForm setAuthenticatedCallback={setAuthenticated} />
                 </motion.div>
               )}

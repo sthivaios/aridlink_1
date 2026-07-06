@@ -63,7 +63,7 @@ export function SignupForm(props: { submitCallbackFunctionAction: () => void }) 
         <div className="flex items-center justify-between">
           <label
             htmlFor="fullname"
-            className="font-mono text-[11px] tracking-[0.12em] text-muted-foreground uppercase"
+            className=" text-[11px] tracking-[0.12em] text-muted-foreground uppercase"
           >
             Full Name
           </label>
@@ -80,7 +80,7 @@ export function SignupForm(props: { submitCallbackFunctionAction: () => void }) 
       <div className="space-y-1.5">
         <label
           htmlFor="email"
-          className="flex flex-row items-center justify-between font-mono text-[11px] tracking-[0.12em] text-muted-foreground uppercase"
+          className="flex flex-row items-center justify-between  text-[11px] tracking-[0.12em] text-muted-foreground uppercase"
         >
           Operator ID / email
           <span
@@ -113,7 +113,7 @@ export function SignupForm(props: { submitCallbackFunctionAction: () => void }) 
         <div className="flex items-center justify-between">
           <label
             htmlFor="password"
-            className="font-mono text-[11px] tracking-[0.12em] text-muted-foreground uppercase"
+            className=" text-[11px] tracking-[0.12em] text-muted-foreground uppercase"
           >
             Password
           </label>
@@ -151,7 +151,7 @@ export function SignupForm(props: { submitCallbackFunctionAction: () => void }) 
         <div className="flex items-center justify-between">
           <label
             htmlFor="confirm-password"
-            className="font-mono text-[11px] tracking-[0.12em] text-muted-foreground uppercase"
+            className=" text-[11px] tracking-[0.12em] text-muted-foreground uppercase"
           >
             Confirm Password
           </label>
@@ -225,7 +225,7 @@ export function SignupForm(props: { submitCallbackFunctionAction: () => void }) 
 
       <Button
         type="submit"
-        className="flex h-10 w-full items-center justify-center gap-2 bg-primary font-mono text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+        className="flex h-10 w-full items-center justify-center gap-2 bg-primary  text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
         disabled={!allRequirementsMet}
         onMouseDown={(e) => e.preventDefault()}
       >

@@ -11,7 +11,7 @@ const nunitoSans = Nunito_Sans({subsets:['latin'],variable:'--font-sans'});
 
 const fontMono = Geist_Mono({
   subsets: ["latin"],
-  variable: "--font-mono",
+  variable: "--",
 });
 
 export const metadata: Metadata = {
@@ -38,9 +38,9 @@ export default function RootLayout({
       )}
     >
       <link rel="icon" href="/app/favicon.ico" sizes="any" />
-      <body>
+      <body className="font-sans tracking-wide">
         <ThemeProvider>
-          <div className="fixed right-6 top-3 z-50">
+          <div className="fixed top-3 right-6 z-50">
             <ThemeToggle />
           </div>
           {children}

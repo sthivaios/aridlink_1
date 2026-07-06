@@ -38,7 +38,7 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 px-2 py-3">
-        <p className="px-2 pb-2 font-mono text-[10px] tracking-[0.16em] text-muted-foreground/70 uppercase">
+        <p className="px-2 pb-2  text-[10px] tracking-[0.16em] text-muted-foreground/70 uppercase">
           Operations
         </p>
         <ul className="flex flex-col gap-0.5">
@@ -74,11 +74,11 @@ export function Sidebar() {
       <div className="space-y-2 border-t border-sidebar-border p-3">
         <div className="border border-border bg-card px-3 py-2.5">
           <div className="flex items-center justify-between">
-            <span className="font-mono text-[10px] tracking-[0.14em] text-muted-foreground uppercase">
+            <span className=" text-[10px] tracking-[0.14em] text-muted-foreground uppercase">
               Instance
             </span>
           </div>
-          <p className="mt-1 font-mono text-xs text-foreground">
+          <p className="mt-1  text-xs text-foreground">
             alim.local - v0.9.2
           </p>
         </div>
@@ -87,7 +87,7 @@ export function Sidebar() {
           className="flex items-center gap-2.5 border border-transparent px-2.5 py-2 text-sm text-muted-foreground transition-colors hover:bg-card/60 hover:text-foreground"
         >
           <LogOut className="h-4 w-4" strokeWidth={2} />
-          Sign out
+          Exit
         </Link>
       </div>
     </aside>
@@ -131,10 +131,10 @@ export function Topbar() {
               transition={{ duration: 0.15 }}
               className="flex flex-col items-end justify-end"
             >
-              <p className="font-mono text-[13px] leading-tight text-foreground">
+              <p className=" text-[13px] leading-tight text-foreground">
                 {session?.user.name}
               </p>
-              <p className="font-mono text-[10px] leading-tight text-muted-foreground">
+              <p className=" text-[10px] leading-tight text-muted-foreground">
                 OPERATOR
               </p>
             </motion.div>

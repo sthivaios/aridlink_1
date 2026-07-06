@@ -3,7 +3,7 @@ import Link from "next/link";
 
 function Footer(props: { alignment: "left" | "right" }) {
   return (
-    <div className="flex w-max flex-col items-start justify-center gap-4 font-mono text-[13px] text-foreground">
+    <div className="flex w-max flex-col items-start justify-center gap-4 text-[13px] text-foreground">
       <div className={`flex flex-col justify-center gap-0 ${props.alignment == "left" ? "items-start" : "items-end"}`}>
         <p className="mb-2">AridLink Irrigation Manager v0.9.2</p>
         <p className="text-left font-bold">Copyright © 2026 Stratos Thivaios</p>

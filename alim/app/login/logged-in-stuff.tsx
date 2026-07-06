@@ -20,17 +20,17 @@ function LoggedInStuff(props: {
       <p>Your available options:</p>
       <Link
         href="/dashboard"
-        className="flex h-10 w-full items-center justify-center gap-2 bg-primary font-mono text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+        className="flex h-10 w-full items-center justify-center gap-2 bg-primary  text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
       >
         Head to dashboard
         <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
       </Link>
       <Button
         variant="outline"
-        className="flex h-10 w-full items-center justify-center gap-2 font-mono text-sm font-semibold"
+        className="flex h-10 w-full items-center justify-center gap-2  text-sm font-semibold"
         onClick={props.signOutCallback}
       >
-        Logout
+        Log out
         <LogOut className="h-4 w-4" strokeWidth={2.5} />
       </Button>
     </div>

@@ -12,8 +12,8 @@ function Logo() {
         height={50}
       ></Image>
       <div className="leading-tight">
-        <div className="font-mono text-xl font-bold tracking-tight">ALIM</div>
-        <div className="font-mono text-[13px] tracking-[0.14em] text-muted-foreground uppercase">
+        <div className=" text-xl font-bold tracking-tight">ALIM</div>
+        <div className=" text-[13px] tracking-[0.14em] text-muted-foreground uppercase">
           AridLink Irrigation Manager
         </div>
       </div>
