@@ -10,18 +10,32 @@ datasource db {
   provider = "postgresql"
 }
 
+model ScheduleProfile {
+  id          String   @id @default(uuid(7))
+  name        String
+  description String?
+  schedule    Json     @default("[]")
+  version     String   @default(uuid(7))
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  devices Device[]
+}
+
 model Device {
-  imei                    String    @id
-  name                    String?
-  locationDescription     String?
-  keySHA256               String
-  approved                Boolean   @default(false)
-  schedule                Json      @default("[]")
-  scheduleVersion         String    @default(uuid(7))
-  scheduleVersionReported String
-  firstSeen               DateTime?
-  scheduleLastUpdated     DateTime?
-  createdAt               DateTime  @default(now())
+  imei                String  @id
+  name                String?
+  locationDescription String?
+  keySHA256           String
+  approved            Boolean @default(false)
+
+  scheduleProfileId       String?
+  scheduleProfile         ScheduleProfile? @relation(fields: [scheduleProfileId], references: [id])
+  scheduleVersionReported String?
+
+  firstSeen           DateTime?
+  scheduleLastUpdated DateTime?
+  createdAt           DateTime  @default(now())
 
   heartbeats  Heartbeat[]
   valveEvents ValveEvent[]
