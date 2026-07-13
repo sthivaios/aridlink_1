@@ -18,8 +18,8 @@ import { Spinner } from "@/components/ui/spinner";
 import React, { useEffect, useState } from "react";
 
 const nav = [
-  { href: "/dashboard", label: "Fleet overview", icon: LayoutGrid },
-  { href: "/dashboard/schedule", label: "Schedules", icon: CalendarClock },
+  { href: "/dashboard", label: "Devices", icon: LayoutGrid },
+  { href: "/dashboard/schedules", label: "Common Schedule Profiles (CSPs)", icon: CalendarClock },
   {
     href: "/dashboard/devices/new",
     label: "Register device",
@@ -46,7 +46,7 @@ export function Sidebar() {
             const active =
               item.href === "/"
                 ? pathname === "/"
-                : pathname.startsWith(item.href);
+                : pathname == item.href;
             const Icon = item.icon;
             return (
               <li key={item.href}>
@@ -131,10 +131,10 @@ export function Topbar() {
               transition={{ duration: 0.15 }}
               className="flex flex-col items-end justify-end"
             >
-              <p className=" text-[13px] leading-tight text-foreground">
+              <p className="text-[13px] leading-tight text-foreground">
                 {session?.user.name}
               </p>
-              <p className=" text-[10px] leading-tight text-muted-foreground">
+              <p className="text-[10px] leading-tight text-muted-foreground">
                 OPERATOR
               </p>
             </motion.div>
