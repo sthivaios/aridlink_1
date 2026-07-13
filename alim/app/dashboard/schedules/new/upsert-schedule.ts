@@ -21,7 +21,7 @@ export async function scheduleUpsert(
       schedule: valves,
     },
     where: {
-      id,
+      id: id ?? "",
     },
   });
 }
