@@ -33,7 +33,7 @@ export async function authenticateDevice(req: Request) {
   const hashed_key: string = get_sha256(data.key);
 
   // get device with that imei from the db
-  const device = await prisma.device.findUnique({ where: { imei: data.imei } });
+  const device = await prisma.device.findUnique({ where: { imei: data.imei }, include: { scheduleProfile: {} } });
 
   if (!device) {
     // validation
