@@ -77,7 +77,7 @@ export function UpsertScheduleForm(props: {
   return (
     <form className="flex w-full flex-col items-start gap-5">
       <h1 className="text-2xl">
-        Common Schedule Profile (CSP) Creation Wizard
+        Common Schedule Profile (CSP) Configuration Wizard
       </h1>
       <Separator />
       <div className="flex flex-col gap-2">
