@@ -76,12 +76,14 @@ export function UpsertScheduleForm(props: {
 
   return (
     <form className="flex w-full flex-col items-start gap-5">
-      <h1 className="text-2xl">Common Schedule Profile (CSP) Creation Wizard</h1>
+      <h1 className="text-2xl">
+        Common Schedule Profile (CSP) Creation Wizard
+      </h1>
       <Separator />
       <div className="flex flex-col gap-2">
         <h2 className="text-lg">CSP Information</h2>
         <div className="grid grid-cols-[max-content_1fr] items-center gap-x-4 gap-y-4">
-          <Label>Schedule name</Label>
+          <Label>Schedule name *</Label>
           <Input
             className="min-w-xl"
             value={name}
@@ -165,10 +167,12 @@ export function UpsertScheduleForm(props: {
               window.location.replace(`/dashboard/schedules`);
             }
           }}
+          disabled={name.length < 1}
         >
           Save and submit
         </Button>
       </div>
+      <p className="text-muted-foreground italic text-sm">* Indicates required field</p>
     </form>
   );
 }
