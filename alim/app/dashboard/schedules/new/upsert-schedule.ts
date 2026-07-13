@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/prismacilent";
 import { Valves } from "@/lib/types";
+import { v7 as uuidv7promax } from "uuid";
 
 export async function scheduleUpsert(
   name: string,
@@ -19,6 +20,7 @@ export async function scheduleUpsert(
       name,
       description,
       schedule: valves,
+      version: uuidv7promax()
     },
     where: {
       id: id ?? "",
