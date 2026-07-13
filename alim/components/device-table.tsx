@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { Device, Heartbeat } from "@/lib/generated/prisma/client";
+import {
+  Device,
+  Heartbeat,
+} from "@/lib/generated/prisma/client";
 import { SyncBadge } from "@/components/sync-badge";
-import { Panel } from "@/components/primitives";
 import React from "react";
-import { OpenDeviceBadge } from "@/components/open-device-badge";
+import { OpenEntityBadge } from "@/components/open-entity-badge";
 
 type DeviceWithLatestHeartbeat = Device & { heartbeats: Heartbeat[] };
 
@@ -83,7 +85,7 @@ export function DeviceTable(props: { devices: DeviceWithLatestHeartbeat[] }) {
 
               {/* open device */}
               <td className="">
-                <OpenDeviceBadge href={`/devices/${d.imei}`} />
+                <OpenEntityBadge href={`/devices/${d.imei}`} title="View device" />
               </td>
             </tr>
           );
