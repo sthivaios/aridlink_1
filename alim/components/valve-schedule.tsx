@@ -1,9 +1,9 @@
 import React from "react";
-import { Valves } from "@/app/dashboard/schedules/new/page";
 import { Input } from "@/components/ui/input";
 import { Panel } from "@/components/primitives";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Valves } from "@/lib/types";
 
 function ValveSchedule(props: {
   valves: Valves;
