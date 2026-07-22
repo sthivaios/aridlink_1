@@ -5,11 +5,10 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import {
   CalendarClock,
-  CirclePlus,
-  KeyRound,
   LayoutGrid,
   LogOut,
   Settings,
+  Shield,
 } from "lucide-react";
 import Logo from "@/components/logo";
 import { authClient } from "@/lib/auth-client";
@@ -18,14 +17,9 @@ import { Spinner } from "@/components/ui/spinner";
 import React, { useEffect, useState } from "react";
 
 const nav = [
-  { href: "/dashboard", label: "Devices", icon: LayoutGrid },
+  { href: "/dashboard/devices", label: "Devices", icon: LayoutGrid },
   { href: "/dashboard/schedules", label: "Common Schedule Profiles (CSPs)", icon: CalendarClock },
-  {
-    href: "/dashboard/devices/new",
-    label: "Register device",
-    icon: CirclePlus,
-  },
-  { href: "/dashboard/keys", label: "API & keys", icon: KeyRound },
+  { href: "/dashboard/security", label: "Security", icon: Shield },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
