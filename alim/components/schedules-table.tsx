@@ -1,6 +1,5 @@
 import React from "react";
 import { Device, ScheduleProfile } from "@/lib/generated/prisma/client";
-import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { OpenEntityBadge } from "@/components/open-entity-badge";
 
@@ -32,16 +31,9 @@ export async function SchedulesTable(props: {
             >
               {/* name */}
               <td className="pl-4">
-                <Link
-                  href={`./devices/${scheduleProfile.id}`}
-                  className="mb-0 block"
-                >
-                  <div className="flex items-end gap-2">
-                    <span className="text-xs font-semibold text-foreground">
-                      {scheduleProfile.name}
-                    </span>
-                  </div>
-                </Link>
+                <span className="text-xs font-semibold text-foreground">
+                  {scheduleProfile.name}
+                </span>
               </td>
 
               {/* description */}
@@ -78,7 +70,10 @@ export async function SchedulesTable(props: {
 
               {/* open schedule */}
               <td className="">
-                <OpenEntityBadge href={`./schedules/${scheduleProfile.id}`} title="View CSP"/>
+                <OpenEntityBadge
+                  href={`./schedules/${scheduleProfile.id}`}
+                  title="View CSP"
+                />
               </td>
             </tr>
           );
