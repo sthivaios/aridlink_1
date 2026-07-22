@@ -6,6 +6,9 @@ import {
   alimErrorResponse,
   UnhandledInternalServerException,
 } from "@/lib/errors/errors";
+import { compileScheduleJson } from "@/lib/compile-device-json";
+import { parseValves } from "@/lib/parse-valves-json";
+import { DeviceNoAssignedCSP } from "@/lib/errors/misc-errors";
 
 export async function GET(request: Request) {
   const { data, error } = await tryCatch(authenticateDevice(request));
@@ -27,9 +30,26 @@ export async function GET(request: Request) {
     return alimErrorResponse(new UnhandledInternalServerException());
   }
 
+  const { data: parsedValveJson, error: parseValveJson_Error } = await tryCatch(
+    parseValves(data.scheduleProfile?.schedule)
+  );
+
+  if (parseValveJson_Error) {
+    return alimErrorResponse(new DeviceNoAssignedCSP());
+  }
+
+  const { data: compiledScheduleJson, error: compileScheduleJson_Error } =
+    await tryCatch(
+      compileScheduleJson(parsedValveJson)
+    );
+
+  if (compileScheduleJson_Error) {
+    return alimErrorResponse(new DeviceNoAssignedCSP());
+  }
+
   // return the schedule and info about it
   return NextResponse.json({
-    schedule_version: data.scheduleVersion,
-    schedule: data.schedule
+    schedule_version: data.scheduleProfile?.version,
+    schedule: compiledScheduleJson,
   });
 }
