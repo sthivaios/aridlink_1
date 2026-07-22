@@ -3,7 +3,7 @@
 import React from "react";
 import { Input } from "@/components/ui/input";
 import ValveSchedule from "@/components/valve-schedule";
-import { CancelScheduleEdit } from "@/app/dashboard/schedules/new/cancel";
+import { CancelScheduleEdit } from "@/components/cancel";
 import { Button } from "@/components/ui/button";
 import { scheduleUpsert } from "@/app/dashboard/schedules/new/upsert-schedule";
 import { tryCatch } from "@/lib/try-catch";
@@ -153,7 +153,7 @@ export function UpsertScheduleForm(props: {
         </div>
       </div>
       <div className="flex flex-row gap-2">
-        <CancelScheduleEdit />
+        <CancelScheduleEdit hrefToReturnTo="/dashboard/schedules" />
         <Button
           type="button"
           onClick={async () => {
