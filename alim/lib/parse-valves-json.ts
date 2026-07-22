@@ -12,6 +12,10 @@ const valveSchema = z.object({
 
 export const valvesSchema = z.record(z.string(), valveSchema);
 
-export function parseValves(json: unknown) {
-  return valvesSchema.parse(json);
+export async function parseValves(json: unknown) {
+  try {
+    return valvesSchema.parse(json);
+  } catch (e) {
+    throw e;
+  }
 }

@@ -1,6 +1,6 @@
 import { Valves } from "@/lib/types";
 
-export function compileScheduleJson(valves: Valves) {
+export async function compileScheduleJson(valves: Valves) {
   return Object.fromEntries(
     Object.entries(valves).map(([valveId, valve]) => [
       valveId,
