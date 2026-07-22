@@ -11,25 +11,28 @@ async function Page({ params }: { params: Promise<{ slug: string }> }) {
   const { data, error } = await tryCatch(
     prisma.scheduleProfile.findUnique({
       where: {
-        id: slug
+        id: slug,
       },
       include: {
-        devices: {}
-      }
+        devices: {},
+      },
     })
   );
 
-  if (error || (data == null)) {
+  if (error || data == null) {
     return (
       <ErrorCard title="Schedule not found">
         <p>The requested CSP could not be found.</p>
       </ErrorCard>
-    )
+    );
   }
 
   return (
     <div>
-      <UpsertScheduleForm valves={parseValves(data.schedule)} fullCspObject={data} />
+      <UpsertScheduleForm
+        valves={await parseValves(data.schedule)}
+        fullCspObject={data}
+      />
     </div>
   );
 }
