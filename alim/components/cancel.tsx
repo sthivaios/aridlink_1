@@ -15,7 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import React from "react";
 
-export function CancelScheduleEdit() {
+export function CancelScheduleEdit(props: { hrefToReturnTo: string }) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
@@ -36,7 +36,7 @@ export function CancelScheduleEdit() {
           <AlertDialogAction
             variant="destructive"
             onClick={() => {
-              window.location.replace("/dashboard/schedules");
+              window.location.replace(props.hrefToReturnTo);
             }}
           >
             Yes, cancel
