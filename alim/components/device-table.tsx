@@ -34,7 +34,7 @@ export function DeviceTable(props: { devices: DeviceWithLatestHeartbeat[] }) {
             >
               {/* name */}
               <td className="pl-4">
-                <Link href={`/devices/${d.imei}`} className="mb-0 block">
+                <Link href={`/dashboard/devices/${d.imei}`} className="mb-0 block">
                   <div className="flex items-end gap-2">
                     <span className="text-xs font-semibold text-foreground">
                       {d.imei}
@@ -85,7 +85,7 @@ export function DeviceTable(props: { devices: DeviceWithLatestHeartbeat[] }) {
 
               {/* open device */}
               <td className="">
-                <OpenEntityBadge href={`/devices/${d.imei}`} title="View device" />
+                <OpenEntityBadge href={`/dashboard/devices/${d.imei}`} title="View device" />
               </td>
             </tr>
           );
