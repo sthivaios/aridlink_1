@@ -5,18 +5,26 @@ import { Input } from "@/components/ui/input";
 import ValveSchedule from "@/components/valve-schedule";
 import { CancelScheduleEdit } from "@/components/cancel";
 import { Button } from "@/components/ui/button";
-import { scheduleUpsert } from "@/app/dashboard/schedules/new/upsert-schedule";
+import {
+  scheduleDelete,
+  scheduleUpsert,
+} from "@/app/dashboard/schedules/upsert-schedule";
 import { tryCatch } from "@/lib/try-catch";
 import { toast } from "sonner";
 import { Valves } from "@/lib/types";
 import { Label } from "@/components/ui/label";
 import { Device, ScheduleProfile } from "@/lib/generated/prisma/client";
 import { Separator } from "@/components/ui/separator";
+import DeleteAsset from "@/components/delete-asset";
+import { useRouter } from "next/navigation";
 
 export function UpsertScheduleForm(props: {
   valves: Valves;
   fullCspObject?: ScheduleProfile & { devices: Device[] };
 }) {
+  const csp = props.fullCspObject;
+  const router = useRouter();
+
   const [name, setName] = React.useState(props.fullCspObject?.name ?? "");
   const [description, setDescription] = React.useState(
     props.fullCspObject?.description ?? ""
@@ -154,6 +162,19 @@ export function UpsertScheduleForm(props: {
       </div>
       <div className="flex flex-row gap-2">
         <CancelScheduleEdit hrefToReturnTo="/dashboard/schedules" />
+        {
+          csp ? (
+            <DeleteAsset deleteCallback={async () => {
+              await scheduleDelete(csp.id);
+              toast.success("Schedule deleted successfully.");
+              router.push("/dashboard/devices");
+            }}>
+              <span>
+                You are about to delete the CSP named {'"'}<span className="italic">{csp.name}</span>{'"'}.
+              </span>
+            </DeleteAsset>
+          ) : null
+        }
         <Button
           type="button"
           onClick={async () => {
@@ -172,7 +193,9 @@ export function UpsertScheduleForm(props: {
           Save and submit
         </Button>
       </div>
-      <p className="text-muted-foreground italic text-sm">* Indicates required field</p>
+      <p className="text-sm text-muted-foreground italic">
+        * Indicates required field
+      </p>
     </form>
   );
 }
