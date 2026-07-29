@@ -10,7 +10,6 @@ import { DeviceKeyDialog } from "@/app/dashboard/devices/new/keyDialog";
 import { createDevice } from "@/app/dashboard/devices/new/create-device";
 import { tryCatch } from "@/lib/try-catch";
 import { toast } from "sonner";
-import { serverConsoleLog } from "@/lib/server-log";
 import ScheduleSelector from "@/components/schedule_selector";
 import { ScheduleProfile } from "@/lib/generated/prisma/client";
 import Link from "next/link";
@@ -50,7 +49,6 @@ function NewDeviceForm(props: {
   }
 
   async function keyDialogOpenChange(e: boolean) {
-    await serverConsoleLog(e);
     setShowKey(e);
   }
 
