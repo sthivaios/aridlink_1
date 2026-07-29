@@ -27,3 +27,11 @@ export async function scheduleUpsert(
     },
   });
 }
+
+export async function scheduleDelete(id: string) {
+  return prisma.scheduleProfile.delete({
+    where: {
+      id: id,
+    }
+  })
+}
