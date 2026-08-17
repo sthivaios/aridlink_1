@@ -34,7 +34,7 @@ export default async function LoginPage() {
         </div>
 
         <div>
-          <h2 className=" text-2xl leading-tight font-bold tracking-tight text-balance">
+          <h2 className="text-2xl leading-tight font-bold tracking-tight text-balance">
             Welcome to the AridLink Irrigation Manager
           </h2>
           <div className="feathered-blur-container relative max-w-md">
@@ -59,7 +59,7 @@ export default async function LoginPage() {
 
       <main className="flex flex-1 flex-col">
         <div className="flex h-14 items-center justify-between border-b border-border px-6">
-          <span className=" text-[11px] tracking-[0.16em] text-muted-foreground uppercase">
+          <span className="text-[11px] tracking-[0.16em] text-muted-foreground uppercase">
             initial operator account creation wizard
           </span>
         </div>
@@ -71,7 +71,7 @@ export default async function LoginPage() {
             </div>
 
             <>
-              <h1 className=" text-xl font-bold tracking-tight">
+              <h1 className="text-xl font-bold tracking-tight">
                 Your information
               </h1>
               <p className="mt-1 text-sm text-muted-foreground">

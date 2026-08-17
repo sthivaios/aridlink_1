@@ -10,17 +10,17 @@ async function Page({ params }: { params: Promise<{ slug: string }> }) {
   const { data, error } = await tryCatch(
     prisma.device.findUnique({
       where: {
-        imei: slug
-      }
+        imei: slug,
+      },
     })
   );
 
-  if (error || (data == null)) {
+  if (error || data == null) {
     return (
       <ErrorCard title="Schedule not found">
         <p>The requested CSP could not be found.</p>
       </ErrorCard>
-    )
+    );
   }
 
   const { data: CSPs, error: ErrorFetchingCSPs } = await tryCatch(
@@ -29,7 +29,11 @@ async function Page({ params }: { params: Promise<{ slug: string }> }) {
 
   return (
     <div>
-      <EditDeviceForm CSPs={CSPs} CSPs_Error={!!ErrorFetchingCSPs} device={data} />
+      <EditDeviceForm
+        CSPs={CSPs}
+        CSPs_Error={!!ErrorFetchingCSPs}
+        device={data}
+      />
     </div>
   );
 }

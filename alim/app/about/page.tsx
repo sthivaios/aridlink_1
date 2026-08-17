@@ -71,7 +71,7 @@ function Page() {
           Thank you for using AridLink! Consider supporting this project by
           contributing to it.
         </p>
-        <p className="mt-6 italic text-center">
+        <p className="mt-6 text-center italic">
           Copyright © 2026 Stratos Thivaios. AridLink Irrigation Manager comes
           with ABSOLUTELY NO WARRANTY; see the license for details.
         </p>

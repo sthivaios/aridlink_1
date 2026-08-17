@@ -20,16 +20,19 @@ function EditDeviceForm(props: {
   CSPs_Error?: boolean;
 }) {
   const [name, setName] = React.useState<string>(props.device.name ?? "");
-  const [locationDescription, setLocationDescription] =
-    React.useState<string>(props.device.locationDescription ?? "");
-  const [assignedCSP, setAssignedCSP] = React.useState<string>(props.device.scheduleProfileId ?? "");
+  const [locationDescription, setLocationDescription] = React.useState<string>(
+    props.device.locationDescription ?? ""
+  );
+  const [assignedCSP, setAssignedCSP] = React.useState<string>(
+    props.device.scheduleProfileId ?? ""
+  );
 
   async function handleUpdate() {
     const { error } = await tryCatch(
       editDevice(props.device.imei, {
         name,
         locationDescription,
-        CSP_ID: assignedCSP
+        CSP_ID: assignedCSP,
       })
     );
 
@@ -91,7 +94,9 @@ function EditDeviceForm(props: {
       </div>
       <div className="flex flex-row gap-2">
         <CancelScheduleEdit hrefToReturnTo="/dashboard/devices" />
-        <Button type="button" onClick={handleUpdate}>Save and submit</Button>
+        <Button type="button" onClick={handleUpdate}>
+          Save and submit
+        </Button>
       </div>
       <p className="text-sm text-muted-foreground italic">
         * Indicates required field

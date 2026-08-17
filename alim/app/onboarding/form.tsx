@@ -10,7 +10,9 @@ import { userSignup } from "@/app/onboarding/signup-action";
 import { toast } from "sonner";
 import { SubmitEvent } from "react";
 
-export function SignupForm(props: { submitCallbackFunctionAction: () => void }) {
+export function SignupForm(props: {
+  submitCallbackFunctionAction: () => void;
+}) {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -63,7 +65,7 @@ export function SignupForm(props: { submitCallbackFunctionAction: () => void }) 
         <div className="flex items-center justify-between">
           <label
             htmlFor="fullname"
-            className=" text-[11px] tracking-[0.12em] text-muted-foreground uppercase"
+            className="text-[11px] tracking-[0.12em] text-muted-foreground uppercase"
           >
             Full Name
           </label>
@@ -80,7 +82,7 @@ export function SignupForm(props: { submitCallbackFunctionAction: () => void }) 
       <div className="space-y-1.5">
         <label
           htmlFor="email"
-          className="flex flex-row items-center justify-between  text-[11px] tracking-[0.12em] text-muted-foreground uppercase"
+          className="flex flex-row items-center justify-between text-[11px] tracking-[0.12em] text-muted-foreground uppercase"
         >
           Operator ID / email
           <span
@@ -113,7 +115,7 @@ export function SignupForm(props: { submitCallbackFunctionAction: () => void }) 
         <div className="flex items-center justify-between">
           <label
             htmlFor="password"
-            className=" text-[11px] tracking-[0.12em] text-muted-foreground uppercase"
+            className="text-[11px] tracking-[0.12em] text-muted-foreground uppercase"
           >
             Password
           </label>
@@ -151,7 +153,7 @@ export function SignupForm(props: { submitCallbackFunctionAction: () => void }) 
         <div className="flex items-center justify-between">
           <label
             htmlFor="confirm-password"
-            className=" text-[11px] tracking-[0.12em] text-muted-foreground uppercase"
+            className="text-[11px] tracking-[0.12em] text-muted-foreground uppercase"
           >
             Confirm Password
           </label>
@@ -225,7 +227,7 @@ export function SignupForm(props: { submitCallbackFunctionAction: () => void }) 
 
       <Button
         type="submit"
-        className="flex h-10 w-full items-center justify-center gap-2 bg-primary  text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+        className="flex h-10 w-full items-center justify-center gap-2 bg-primary text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
         disabled={!allRequirementsMet}
         onMouseDown={(e) => e.preventDefault()}
       >
