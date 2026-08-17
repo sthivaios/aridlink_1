@@ -1,9 +1,6 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import {
-  Device,
-  Heartbeat,
-} from "@/lib/generated/prisma/client";
+import { Device, Heartbeat } from "@/lib/generated/prisma/client";
 import { SyncBadge } from "@/components/sync-badge";
 import React from "react";
 import { OpenEntityBadge } from "@/components/open-entity-badge";
@@ -34,7 +31,10 @@ export function DeviceTable(props: { devices: DeviceWithLatestHeartbeat[] }) {
             >
               {/* name */}
               <td className="pl-4">
-                <Link href={`/dashboard/devices/${d.imei}`} className="mb-0 block">
+                <Link
+                  href={`/dashboard/devices/${d.imei}`}
+                  className="mb-0 block"
+                >
                   <div className="flex items-end gap-2">
                     <span className="text-xs font-semibold text-foreground">
                       {d.imei}
@@ -85,7 +85,10 @@ export function DeviceTable(props: { devices: DeviceWithLatestHeartbeat[] }) {
 
               {/* open device */}
               <td className="">
-                <OpenEntityBadge href={`/dashboard/devices/${d.imei}`} title="View device" />
+                <OpenEntityBadge
+                  href={`/dashboard/devices/${d.imei}`}
+                  title="View device"
+                />
               </td>
             </tr>
           );
