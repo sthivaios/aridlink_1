@@ -7,7 +7,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { Metadata } from "next";
 import { ThemeToggle } from "@/components/theme-toggle";
 
-const nunitoSans = Nunito_Sans({subsets:['latin'],variable:'--font-sans'});
+const nunitoSans = Nunito_Sans({ subsets: ["latin"], variable: "--font-sans" });
 
 const fontMono = Geist_Mono({
   subsets: ["latin"],
@@ -17,8 +17,8 @@ const fontMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "AridLink Irrigation Manager",
   icons: {
-    icon: "/aridlink_logo.png"
-  }
+    icon: "/aridlink_logo.png",
+  },
 };
 
 export default function RootLayout({
@@ -44,7 +44,15 @@ export default function RootLayout({
             <ThemeToggle />
           </div>
           {children}
-          <Toaster richColors={true} position="bottom-right" />
+          <Toaster
+            richColors={true}
+            position="bottom-right"
+            closeButton
+            expand={false}
+            toastOptions={{
+              duration: 5000,
+            }}
+          />
         </ThemeProvider>
       </body>
     </html>
