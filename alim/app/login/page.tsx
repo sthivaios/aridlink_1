@@ -1,15 +1,14 @@
 "use client";
 
-import { Droplets } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
-import Image from "next/image";
 import Footer from "@/components/footer";
 import LoggedInStuff from "@/app/login/logged-in-stuff";
 import { useEffect, useState } from "react";
 import LoginForm from "@/app/login/login-form";
 import { Spinner } from "@/components/ui/spinner";
 import { AnimatePresence, motion } from "framer-motion";
+import Logo from "@/components/logo";
 
 export default function LoginPage() {
   const [authenticated, setAuthenticated] = useState(false);
@@ -33,37 +32,31 @@ export default function LoginPage() {
   const isAuthenticated = !!session || authenticated;
 
   return (
-    <div className="flex min-h-screen flex-col bg-background lg:flex-row">
-      <aside className="relative hidden flex-col justify-between overflow-hidden border-r border-border bg-sidebar p-10 lg:flex lg:w-[65%]">
-        <div className="topographic-paper pointer-events-none absolute inset-0 opacity-70" />
+    <div className="flex min-h-screen flex-col lg:flex-row">
+      <aside className="relative hidden flex-col justify-between overflow-hidden bg-sidebar p-10 lg:flex lg:w-[72.5%]">
+        <div className="bg-tomatos pointer-events-none absolute inset-0" />
 
-        <div className="relative flex flex-row items-center gap-2.5">
-          <Image
-            src="/aridlink_logo.png"
-            alt="The AridLink Logo"
-            width={50}
-            height={50}
-          ></Image>
-          <div className="leading-tight">
-            <div className="text-xl font-bold tracking-tight">ALIM</div>
-            <div className="text-[13px] tracking-[0.14em] text-muted-foreground uppercase">
-              AridLink Irrigation Manager
-            </div>
-          </div>
+        <div className="relative">
+          <Logo
+            textColors={{
+              title: "text-white",
+              caption: "text-white/80",
+            }}
+          />
         </div>
 
         <div className="feathered-blur-container relative max-w-md">
-          <h2 className="text-2xl leading-tight font-bold tracking-tight text-balance">
+          <h2 className="text-2xl font-bold tracking-tight text-balance text-white">
             Welcome back to ALIM
           </h2>
-          <p className="mt-3 text-sm leading-relaxed text-pretty text-muted-foreground">
+          <p className="mt-3 text-sm leading-tight font-bold text-pretty text-white/80">
             Provision, configure, and monitor your entire fleet of AridLink
             stations from one console.
           </p>
         </div>
 
         <div className="relative">
-          <Footer alignment="left" />
+          <Footer alignment="left" textColor="text-white" />
         </div>
       </aside>
 
@@ -77,13 +70,8 @@ export default function LoginPage() {
 
         <div className="flex flex-1 items-center justify-center px-6 py-12">
           <div className="w-full max-w-sm">
-            <div className="lg:hidden">
-              <div className="mb-6 flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center bg-primary text-primary-foreground">
-                  <Droplets className="h-4.5 w-4.5" strokeWidth={2.5} />
-                </div>
-                <div className="text-sm font-bold tracking-tight">ALIM</div>
-              </div>
+            <div className="mb-6 lg:hidden">
+              <Logo />
             </div>
 
             <AnimatePresence mode="wait">
