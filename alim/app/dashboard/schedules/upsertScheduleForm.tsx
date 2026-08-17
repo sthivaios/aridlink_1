@@ -162,19 +162,21 @@ export function UpsertScheduleForm(props: {
       </div>
       <div className="flex flex-row gap-2">
         <CancelScheduleEdit hrefToReturnTo="/dashboard/schedules" />
-        {
-          csp ? (
-            <DeleteAsset deleteCallback={async () => {
+        {csp ? (
+          <DeleteAsset
+            deleteCallback={async () => {
               await scheduleDelete(csp.id);
               toast.success("Schedule deleted successfully.");
               router.push("/dashboard/devices");
-            }}>
-              <span>
-                You are about to delete the CSP named {'"'}<span className="italic">{csp.name}</span>{'"'}.
-              </span>
-            </DeleteAsset>
-          ) : null
-        }
+            }}
+          >
+            <span>
+              You are about to delete the CSP named {'"'}
+              <span className="italic">{csp.name}</span>
+              {'"'}.
+            </span>
+          </DeleteAsset>
+        ) : null}
         <Button
           type="button"
           onClick={async () => {
