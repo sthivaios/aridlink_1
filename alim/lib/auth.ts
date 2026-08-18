@@ -8,6 +8,7 @@ export const auth = betterAuth({
   trustedOrigins: [
     "http://localhost:3000",
     "https://alim_development_server.twinknet.uk",
+    "https://alim-development-server.twinknet.uk",
     /* yes i actually do own this domain it was an inside joke,
      * and yes this is an actual fqdn that im using for testing the firmware,
      * i cant be arsed to setup environment variables right now and do this properly,
