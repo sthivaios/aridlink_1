@@ -82,6 +82,7 @@
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
     --topo-bg: url('/topographic-paper-light.svg');
+    --image-bg: url('/proprietary_assets/tomatoes.webp');
 }
 
 .dark {
@@ -117,6 +118,7 @@
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.556 0 0);
     --topo-bg: url('/topographic-paper-dark.svg');
+    --image-bg: url('/proprietary_assets/tomatoes.webp');
 }
 
 @layer base {
@@ -148,5 +150,24 @@
         background-position: center;
         mask-image: radial-gradient(circle at center, black, transparent 105%);
     }
+
+    .bg-tomatos {
+        background-image: var(--image-bg);
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+    }
+
+    .bg-explod {
+        background: #000000;
+        background: linear-gradient(
+                120deg,
+                rgba(0, 0, 0, 1) 0%,
+                rgb(172 28 142) 60%,
+                rgba(0, 0, 0, 1) 100%
+        );
+    }
 }
+
 
