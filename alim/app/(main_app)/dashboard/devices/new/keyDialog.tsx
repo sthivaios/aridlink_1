@@ -6,8 +6,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import React, { useEffect } from "react";
-import { ClockIcon, Copy, ShieldAlert } from "lucide-react";
+import React from "react";
+import { Copy, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -19,14 +19,6 @@ export function DeviceKeyDialog(props: {
   closeDialogCallback: () => void;
 }) {
   const [warningAcknowledged, setWarningAcknowledged] = React.useState(false);
-
-  const [countdown, setCountdown] = React.useState(5);
-
-  useEffect(() => {
-    if (warningAcknowledged || countdown === 0) return;
-    const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
-    return () => clearTimeout(t);
-  }, [props.open, countdown, warningAcknowledged]);
 
   return (
     <AlertDialog open={props.open} onOpenChange={props.onOpenChange}>
@@ -98,19 +90,16 @@ export function DeviceKeyDialog(props: {
               onClick={() => {
                 setWarningAcknowledged(true);
               }}
-              disabled={countdown > 0}
             >
-              {countdown > 0 ? (
-                <div className="flex flex-row items-end gap-2">
-                  <ClockIcon />
-                  <p className="leading-none">Please read ({countdown})</p>
-                </div>
-              ) : (
-                "Acknowledge"
-              )}
+              Acknowledge
             </Button>
           ) : (
-            <AlertDialogAction onClick={props.closeDialogCallback}>
+            <AlertDialogAction
+              onClick={() => {
+                setWarningAcknowledged(false);
+                props.closeDialogCallback();
+              }}
+            >
               I have copied the key (close)
             </AlertDialogAction>
           )}
