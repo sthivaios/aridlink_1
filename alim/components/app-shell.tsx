@@ -18,7 +18,11 @@ import React, { useEffect, useState } from "react";
 
 const nav = [
   { href: "/dashboard/devices", label: "Devices", icon: LayoutGrid },
-  { href: "/dashboard/schedules", label: "Common Schedule Profiles (CSPs)", icon: CalendarClock },
+  {
+    href: "/dashboard/schedules",
+    label: "Common Schedule Profiles (CSPs)",
+    icon: CalendarClock,
+  },
   { href: "/dashboard/security", label: "Security", icon: Shield },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
@@ -32,7 +36,7 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 px-2 py-3">
-        <p className="px-2 pb-2  text-[10px] tracking-[0.16em] text-muted-foreground/70 uppercase">
+        <p className="px-2 pb-2 text-[10px] tracking-[0.16em] text-muted-foreground/70 uppercase">
           Operations
         </p>
         <ul className="flex flex-col gap-0.5">
@@ -40,7 +44,7 @@ export function Sidebar() {
             const active =
               item.href === "/"
                 ? pathname === "/"
-                : pathname == item.href;
+                : pathname.startsWith(item.href);
             const Icon = item.icon;
             return (
               <li key={item.href}>
@@ -68,13 +72,11 @@ export function Sidebar() {
       <div className="space-y-2 border-t border-sidebar-border p-3">
         <div className="border border-border bg-card px-3 py-2.5">
           <div className="flex items-center justify-between">
-            <span className=" text-[10px] tracking-[0.14em] text-muted-foreground uppercase">
+            <span className="text-[10px] tracking-[0.14em] text-muted-foreground uppercase">
               Instance
             </span>
           </div>
-          <p className="mt-1  text-xs text-foreground">
-            alim.local - v0.9.2
-          </p>
+          <p className="mt-1 text-xs text-foreground">alim.local - v0.9.2</p>
         </div>
         <Link
           href="/login"
