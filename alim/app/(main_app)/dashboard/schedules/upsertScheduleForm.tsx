@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import {
   scheduleDelete,
   scheduleUpsert,
-} from "@/app/dashboard/schedules/upsert-schedule";
+} from "@/app/(main_app)/dashboard/schedules/upsert-schedule";
 import { tryCatch } from "@/lib/try-catch";
 import { toast } from "sonner";
 import { Valves } from "@/lib/types";

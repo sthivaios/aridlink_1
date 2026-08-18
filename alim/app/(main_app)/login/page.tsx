@@ -3,9 +3,9 @@
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 import Footer from "@/components/footer";
-import LoggedInStuff from "@/app/login/logged-in-stuff";
+import LoggedInStuff from "@/app/(main_app)/login/logged-in-stuff";
 import { useEffect, useState } from "react";
-import LoginForm from "@/app/login/login-form";
+import LoginForm from "@/app/(main_app)/login/login-form";
 import { Spinner } from "@/components/ui/spinner";
 import { AnimatePresence, motion } from "framer-motion";
 import Logo from "@/components/logo";

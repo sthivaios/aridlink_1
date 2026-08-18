@@ -4,8 +4,14 @@ import { auth } from "@/lib/auth";
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // if pathname is /explod then move on without doing anything else and go to the route
   if (pathname === "/explod") {
     return NextResponse.next();
+  }
+
+  // send users on the root route to login
+  if (pathname === "/") {
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
   try {

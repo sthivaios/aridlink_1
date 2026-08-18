@@ -2,10 +2,9 @@
 
 import React from "react";
 import { Valves } from "@/lib/types";
-import { UpsertScheduleForm } from "@/app/dashboard/schedules/upsertScheduleForm";
+import { UpsertScheduleForm } from "@/app/(main_app)/dashboard/schedules/upsertScheduleForm";
 
 function Page() {
-
   const blankValves: Valves = {
     "valve-1": {
       name: "Valve 1",

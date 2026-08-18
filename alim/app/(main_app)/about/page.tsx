@@ -48,7 +48,7 @@ function Page() {
           conditions served locally in application,{" "}
           <Link
             target="_blank"
-            href="/about/agplv3"
+            href="/app/(main_app)/about/agplv3"
             className="text-blue-400 transition-all duration-200 hover:text-primary hover:underline"
           >
             here

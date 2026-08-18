@@ -32,7 +32,7 @@ export function DeviceTable(props: { devices: DeviceWithLatestHeartbeat[] }) {
               {/* name */}
               <td className="pl-4">
                 <Link
-                  href={`/dashboard/devices/${d.imei}`}
+                  href={`/app/(main_app)/dashboard/devices/${d.imei}`}
                   className="mb-0 block"
                 >
                   <div className="flex items-end gap-2">

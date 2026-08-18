@@ -1,5 +1,5 @@
 import React from "react";
-import NewDeviceForm from "@/app/dashboard/devices/new/newDeviceForm";
+import NewDeviceForm from "@/app/(main_app)/dashboard/devices/new/newDeviceForm";
 import { tryCatch } from "@/lib/try-catch";
 import prisma from "@/lib/prismacilent";
 

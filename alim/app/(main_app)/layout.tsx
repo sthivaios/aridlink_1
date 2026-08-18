@@ -1,6 +1,6 @@
 import { Geist_Mono, Nunito_Sans } from "next/font/google";
 
-import "./globals.css";
+import "../globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
@@ -40,6 +40,9 @@ export default function RootLayout({
       <link rel="icon" href="/app/favicon.ico" sizes="any" />
       <body className="font-sans tracking-wide">
         <ThemeProvider>
+          <div className="fixed top-3 right-6 z-50">
+            <ThemeToggle />
+          </div>
           {children}
           <Toaster
             richColors={true}

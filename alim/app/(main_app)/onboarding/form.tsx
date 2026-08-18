@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { AnimatePresence, motion } from "framer-motion";
 import { PasswordRequirement } from "@/components/password-requirement";
 import { useState } from "react";
-import { userSignup } from "@/app/onboarding/signup-action";
+import { userSignup } from "@/app/(main_app)/onboarding/signup-action";
 import { toast } from "sonner";
 import { SubmitEvent } from "react";
 

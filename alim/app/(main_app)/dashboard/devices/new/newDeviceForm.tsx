@@ -6,41 +6,50 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { CancelScheduleEdit } from "@/components/cancel";
 import { Button } from "@/components/ui/button";
-import ScheduleSelector from "@/components/schedule_selector";
-import { Device, ScheduleProfile } from "@/lib/generated/prisma/client";
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import { editDevice } from "@/app/dashboard/devices/[slug]/edit-device";
+import { DeviceKeyDialog } from "@/app/(main_app)/dashboard/devices/new/keyDialog";
+import { createDevice } from "@/app/(main_app)/dashboard/devices/new/create-device";
 import { tryCatch } from "@/lib/try-catch";
 import { toast } from "sonner";
+import ScheduleSelector from "@/components/schedule_selector";
+import { ScheduleProfile } from "@/lib/generated/prisma/client";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
-function EditDeviceForm(props: {
+function NewDeviceForm(props: {
   CSPs: ScheduleProfile[] | null;
-  device: Device;
   CSPs_Error?: boolean;
 }) {
-  const [name, setName] = React.useState<string>(props.device.name ?? "");
-  const [locationDescription, setLocationDescription] = React.useState<string>(
-    props.device.locationDescription ?? ""
-  );
-  const [assignedCSP, setAssignedCSP] = React.useState<string>(
-    props.device.scheduleProfileId ?? ""
-  );
+  const [imei, setImei] = React.useState<string>("");
+  const [confirmImei, setConfirmImei] = React.useState<string>("");
+  const [name, setName] = React.useState<string>("");
+  const [locationDescription, setLocationDescription] =
+    React.useState<string>("");
+  const [assignedCSP, setAssignedCSP] = React.useState<string>("");
+  const [showKey, setShowKey] = React.useState(false);
+  const [key, setKey] = React.useState<string>("");
 
-  async function handleUpdate() {
-    const { error } = await tryCatch(
-      editDevice(props.device.imei, {
-        name,
-        locationDescription,
-        CSP_ID: assignedCSP,
-      })
+  const requirements = {
+    imei_confirmed: imei == confirmImei,
+    valid_imei_length: imei.length == 15,
+    name_present: name.length > 0,
+  };
+
+  async function handleCreate() {
+    const { data, error } = await tryCatch(
+      createDevice(imei, name, locationDescription, assignedCSP)
     );
 
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Device updated successfully.");
+      toast.success("Device created successfully.");
+      setKey(data.deviceKey);
+      setShowKey(true);
     }
+  }
+
+  async function keyDialogOpenChange(e: boolean) {
+    setShowKey(e);
   }
 
   return (
@@ -53,8 +62,16 @@ function EditDeviceForm(props: {
           <Label>IMEI *</Label>
           <Input
             className="min-w-xl"
-            value={props.device.imei}
-            readOnly={true}
+            value={imei}
+            onChange={(e) => setImei(e.target.value)}
+          />
+          <div />
+
+          <Label>Confirm IMEI *</Label>
+          <Input
+            className="min-w-xl"
+            value={confirmImei}
+            onChange={(e) => setConfirmImei(e.target.value)}
           />
           <div />
 
@@ -84,25 +101,38 @@ function EditDeviceForm(props: {
             value={assignedCSP}
           />
           <Link
-            href={`/dashboard/schedules/${assignedCSP}`}
-            target="_blank"
+            href="/app/(main_app)/dashboard/schedules/new"
             className="flex flex-row items-center gap-1 text-sm text-nowrap text-blue-400 transition-all duration-200 hover:text-primary hover:underline"
           >
-            View CSP (new tab) <ArrowRight size={16} />
+            Create a new CSP <ArrowRight size={16} />
           </Link>
         </div>
       </div>
       <div className="flex flex-row gap-2">
         <CancelScheduleEdit hrefToReturnTo="/dashboard/devices" />
-        <Button type="button" onClick={handleUpdate}>
+        <Button
+          type="button"
+          onClick={handleCreate}
+          disabled={!Object.values(requirements).every(Boolean)}
+        >
           Save and submit
         </Button>
       </div>
       <p className="text-sm text-muted-foreground italic">
         * Indicates required field
       </p>
+      <DeviceKeyDialog
+        open={showKey}
+        imei={imei}
+        onOpenChange={keyDialogOpenChange}
+        device_key={key}
+        closeDialogCallback={() => {
+          setShowKey(false);
+          setKey("");
+        }}
+      />
     </form>
   );
 }
 
-export default EditDeviceForm;
+export default NewDeviceForm;

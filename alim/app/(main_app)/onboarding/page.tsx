@@ -1,10 +1,10 @@
 "use server";
 
 import Footer from "@/components/footer";
-import { SignupForm } from "@/app/onboarding/form";
+import { SignupForm } from "@/app/(main_app)/onboarding/form";
 import { tryCatch } from "@/lib/try-catch";
-import { checkForExistingUsers } from "@/app/onboarding/check-db";
-import { refreshRouter } from "@/app/onboarding/refresh_router";
+import { checkForExistingUsers } from "@/app/(main_app)/onboarding/check-db";
+import { refreshRouter } from "@/app/(main_app)/onboarding/refresh_router";
 import Logo from "@/components/logo";
 import React from "react";
 import { redirect } from "next/navigation";
