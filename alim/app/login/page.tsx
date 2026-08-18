@@ -55,8 +55,11 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <div className="relative">
+        <div className="relative flex flex-col gap-2">
           <Footer alignment="left" textColor="text-white" />
+          <p className="text-xs text-white italic">
+            Picture © Stratos Thivaios 2026 - All Rights Reserved
+          </p>
         </div>
       </aside>
 
