@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { isDatabaseHealthy } from "@/lib/db-health";
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -7,6 +8,10 @@ export async function proxy(request: NextRequest) {
   // if pathname is /explod then move on without doing anything else and go to the route
   if (pathname === "/explod") {
     return NextResponse.next();
+  }
+
+  if (!(await isDatabaseHealthy())) {
+    return NextResponse.rewrite(new URL("/explod", request.url));
   }
 
   // send users on the root route to login
