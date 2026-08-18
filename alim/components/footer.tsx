@@ -16,7 +16,7 @@ function Footer(props: { alignment: "left" | "right"; textColor?: string }) {
         <p>
           View the application source code{" "}
           <Link
-            className="font-bold text-blue-400 transition-all duration-200 hover:text-primary hover:underline"
+            className="pretty-hyperlink"
             href="https://github.com/sthivaios/aridlink_1"
             target="_blank"
           >
@@ -33,10 +33,7 @@ function Footer(props: { alignment: "left" | "right"; textColor?: string }) {
         {/*    GNU Affero General Public License v3*/}
         {/*  </Link>*/}
         {/*</p>*/}
-        <Link
-          className="font-bold text-blue-400 transition-all duration-200 hover:text-primary hover:underline"
-          href="/about"
-        >
+        <Link className="pretty-hyperlink" href="/about">
           About AridLink Irrigation Manager
         </Link>
       </div>

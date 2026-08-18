@@ -168,6 +168,10 @@
                 rgba(0, 0, 0, 1) 100%
         );
     }
+
+    .pretty-hyperlink {
+        @apply font-bold text-blue-400 transition-all duration-200 hover:text-primary hover:underline;
+    }
 }
 
 
