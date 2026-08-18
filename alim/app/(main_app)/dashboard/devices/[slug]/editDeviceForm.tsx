@@ -56,7 +56,12 @@ function EditDeviceForm(props: {
             value={props.device.imei}
             readOnly={true}
           />
-          <div />
+          <Link
+            href={`/dashboard/security/reset-device-key/${props.device.imei}`}
+            className="flex flex-row items-center gap-1 text-sm text-nowrap text-blue-400 transition-all duration-200 hover:text-primary hover:underline"
+          >
+            Reset device key <ArrowRight size={16} />
+          </Link>
 
           <Label>Name *</Label>
           <Input
@@ -84,7 +89,7 @@ function EditDeviceForm(props: {
             value={assignedCSP}
           />
           <Link
-            href={`/app/(main_app)/dashboard/schedules/${assignedCSP}`}
+            href={`/dashboard/schedules/${assignedCSP}`}
             target="_blank"
             className="flex flex-row items-center gap-1 text-sm text-nowrap text-blue-400 transition-all duration-200 hover:text-primary hover:underline"
           >
