@@ -19,6 +19,7 @@
 
 #include "fetch_task.h"
 
+#include "alim.h"
 #include "esp_netif_sntp.h"
 #include "esp_task_wdt.h"
 #include "lte.h"
@@ -54,7 +55,17 @@ void fetch_task(void *pvParameters) {
     esp_task_wdt_add(nullptr);
     uint64_t next_delay_ms = SECONDS(10);
 
-    ESP_LOGW(TAG, "Initializing MQTT... (free heap: %lu)",
+    char *json_from_alim_buffer = NULL;
+    size_t json_from_alim_buffer_size = 8192;
+
+    json_from_alim_buffer = malloc(json_from_alim_buffer_size);
+    if (json_from_alim_buffer == NULL) {
+      ESP_LOGE(TAG, "Failed to allocate memory for json_from_alim_buffer");
+      next_delay_ms = SECONDS(20);
+      goto cleanup_no_client;
+    }
+
+    ESP_LOGW(TAG, "Hello from the fetch task... (free heap: %lu)",
              esp_get_free_heap_size());
 
     // wake modem up
@@ -72,41 +83,15 @@ void fetch_task(void *pvParameters) {
     ESP_LOGI(TAG, "Calling update_time()");
     update_time();
 
-    // start a new mqtt client
-    ESP_LOGI(TAG, "Initializing MQTT shit...");
-    const esp_mqtt_client_handle_t client = mqtt_app_start();
-
-    // wait for the client to actually connect
-    xEventGroupWaitBits(mqtt_event_group, MQTT_CONNECTED_BIT, pdFALSE, pdFALSE,
-                        portMAX_DELAY);
-
-    // initialize shadow stuff
-    ESP_LOGI(TAG, "Calling shadow_init()");
-    shadow_init(client);
-
-    // wait for the mqtt client to actually subscribe to the shadow topics
-    xEventGroupWaitBits(shadow_event_group,
-                        SHADOW_SUBSCRIBED_TO_ACCEPTED_TOPIC_BIT |
-                            SHADOW_SUBSCRIBED_TO_REJECTED_TOPIC_BIT,
-                        pdFALSE, pdFALSE, portMAX_DELAY);
-
     // actually fetch the shadow
-    ESP_LOGI(TAG, "Calling shadow_get()");
-    shadow_get(client);
+    ESP_LOGI(TAG, "Calling fetch_schedule_from_alim()");
+    fetch_schedule_from_alim(ALIM_AUTHORIZATION_HEADER_DEV, json_from_alim_buffer, json_from_alim_buffer_size);
+
+    ESP_LOGI(TAG, "Pulled JSON from ALIM. The raw response follows:");
+
+    printf("%s\n", json_from_alim_buffer);
 
     scheduler_unload_nvs_into_ram();
-
-    // stop/delete mqtt client
-    ESP_LOGI(TAG, "Making the MQTT client explode");
-    esp_mqtt_client_disconnect(client);
-    esp_mqtt_client_stop(client);
-    esp_mqtt_client_destroy(client);
-
-    xEventGroupClearBits(mqtt_event_group, MQTT_CONNECTED_BIT);
-    xEventGroupClearBits(shadow_event_group,
-                         SHADOW_GET_ACCEPTED_BIT | SHADOW_GET_REJECTED_BIT |
-                             SHADOW_SUBSCRIBED_TO_ACCEPTED_TOPIC_BIT |
-                             SHADOW_SUBSCRIBED_TO_REJECTED_TOPIC_BIT);
 
   cleanup_no_client:
     // make modem sleepy sleep
