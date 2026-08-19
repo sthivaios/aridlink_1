@@ -45,6 +45,17 @@ static void on_ip_event(void *arg, esp_event_base_t base, int32_t event_id,
   }
 }
 
+// this little function is uh potentially very stupid im not sure if im doing this right
+static signed int convert_rssi_to_dbm(const int rssi) {
+  if (rssi == 31) {
+    return -51;
+  } else if (rssi == 99) {
+    return 0; // unknown
+  } else {
+    return -113 + 2 * rssi;
+  }
+}
+
 // set parameter to true to wake the modem up or false to put modem to sleep
 void modem_wakeup_or_sleep(const bool wakeup) {
   if (wakeup) {
@@ -121,7 +132,7 @@ LTE_Connect_Status_t lte_connect(void) {
     ESP_LOGE(TAG, "Could not get LTE signal integrity!");
     return LTE_MODEM_NO_RSSI;
   }
-  ESP_LOGI(TAG, "RSSI=%d BER=%d", rssi, ber);
+  ESP_LOGI(TAG, "RSSI: %ddBm", convert_rssi_to_dbm(rssi));
 
   if (esp_modem_set_mode(dce, ESP_MODEM_MODE_DATA) != ESP_OK) {
     ESP_LOGE(TAG, "Could not set modem mode!");
