@@ -47,13 +47,19 @@ Load_JSON_To_NVS_Status_t scheduler_load_from_json_to_nvs(const char *json) {
 
   // buffer for current schedule
   char *schedule_string = NULL;
-  char current_schedule[8192];
+   char *current_schedule = NULL;
   size_t size = 8192;
+  cJSON *root = cJSON_Parse(json);
   bool nvs_opened = false;
   nvs_handle_t handle = 0;
 
+  current_schedule = malloc(size);
+  if (current_schedule == NULL) {
+    return_value = LOAD_JSON_TO_NVS_OUT_OF_MEMORY;
+    goto cleanup;
+  }
+
   // parse json to only keep the desired.schedule section
-  cJSON *root = cJSON_Parse(json);
   if (root == NULL) {
     return_value = LOAD_JSON_TO_NVS_PARSING_FAILED;
     goto cleanup;
@@ -138,12 +144,18 @@ Unload_Schedule_Into_RAM_Status_t scheduler_unload_nvs_into_ram() {
   ESP_LOGI(TAG, "Loading schedule from NVS into RAM...");
 
   // initialize nvs variables and buffers and handles and stuff
-  char current_schedule_json[8192];
+  char *current_schedule_json = NULL;
   size_t size = 8192;
   nvs_handle_t handle;
   cJSON *root = NULL;
   bool nvs_opened = false;
   Unload_Schedule_Into_RAM_Status_t return_value = UNLOAD_SCHEDULE_INTO_RAM_SUCCESS;
+
+  current_schedule_json = malloc(size);
+  if (current_schedule_json == NULL) {
+    return_value = UNLOAD_SCHEDULE_INTO_RAM_OUT_OF_MEMORY;
+    goto cleanup;
+  }
 
   // open nvs and grab schedule json string
   if (nvs_open("aridlink_sched", NVS_READWRITE, &handle) != ESP_OK) {
