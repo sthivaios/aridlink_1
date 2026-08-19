@@ -34,7 +34,7 @@ static const char *TAG = "main_task_pro_max_ultra";
 static TaskHandle_t fetch_task_handle = nullptr;
 // static TaskHandle_t scheduler_task_handle = nullptr;
 
-static void app_main(void) {
+void app_main(void) {
   // set valve gpio direction
   gpio_set_direction(VALVE_GPIO, GPIO_MODE_OUTPUT);
   gpio_set_direction(GPIO_NUM_17, GPIO_MODE_OUTPUT);
