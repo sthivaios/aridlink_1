@@ -21,24 +21,20 @@
 #include "esp_event.h"
 #include "esp_log.h"
 #include "esp_netif.h"
-#include "esp_netif_sntp.h"
 #include "esp_sntp.h"
-#include "esp_task_wdt.h"
 #include "fetch_task.h"
 #include "lte.h"
-#include "mqtt.h"
 #include "nvs_flash.h"
 #include "portmacro.h"
 #include "scheduler.h"
-#include "shadow.h"
 
 #include <time.h>
 
 static const char *TAG = "main_task_pro_max_ultra";
-TaskHandle_t fetch_task_handle = NULL;
-TaskHandle_t scheduler_task_handle = NULL;
+static TaskHandle_t fetch_task_handle = nullptr;
+// static TaskHandle_t scheduler_task_handle = nullptr;
 
-void app_main(void) {
+static void app_main(void) {
   // set valve gpio direction
   gpio_set_direction(VALVE_GPIO, GPIO_MODE_OUTPUT);
   gpio_set_direction(GPIO_NUM_17, GPIO_MODE_OUTPUT);
@@ -65,13 +61,9 @@ void app_main(void) {
   esp_event_loop_create_default();
   lte_init();
 
-  mqtt_init_eventgroup();
-
-  shadow_eventgroup_init();
-
   // create fetch task
   BaseType_t const fetch_task_returned =
-      xTaskCreate(fetch_task, "INTERNET_STUFF_FETCH_TASK", 8192, NULL, 0,
+      xTaskCreate(fetch_task, "INTERNET_STUFF_FETCH_TASK", 12288, NULL, 0,
                   &fetch_task_handle);
 
   // explode completely if task couldnt be created
@@ -80,14 +72,14 @@ void app_main(void) {
     abort();
   }
 
-  // create scheduler task
-  BaseType_t const scheduler_task_returned =
-      xTaskCreate(irrigation_scheduler, "IRRIGATION_SCHEDULER_TASK", 8192, NULL, 1,
-                  &scheduler_task_handle);
+  // // create scheduler task
+  // BaseType_t const scheduler_task_returned =
+  //     xTaskCreate(irrigation_scheduler, "IRRIGATION_SCHEDULER_TASK", 8192, NULL, 1,
+  //                 &scheduler_task_handle);
 
   // explode completely if task couldnt be created
-  if (scheduler_task_returned != pdPASS) {
-    ESP_LOGE(TAG, "Failed to create scheduler task");
-    abort();
-  }
+  // if (scheduler_task_returned != pdPASS) {
+  //   ESP_LOGE(TAG, "Failed to create scheduler task");
+  //   abort();
+  // }
 }
