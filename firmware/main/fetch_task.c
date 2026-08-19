@@ -60,7 +60,7 @@ void fetch_task(void *pvParameters) {
     if (json_from_alim_buffer == NULL) {
       ESP_LOGE(TAG, "Failed to allocate memory for json_from_alim_buffer");
       next_delay_ms = SECONDS(20);
-      goto cleanup_no_client;
+      goto cleanup;
     }
 
     ESP_LOGW(TAG, "Hello from the fetch task... (free heap: %lu)",
@@ -74,7 +74,7 @@ void fetch_task(void *pvParameters) {
     if (lte_connect() != LTE_CONNECTED_SUCCESSFULLY) {
       ESP_LOGW(TAG, "Skipping this fetch attempt. Retrying in 20 seconds.");
       next_delay_ms = SECONDS(20);
-      goto cleanup_no_client;
+      goto cleanup;
     }
 
     // update the local time
@@ -91,7 +91,9 @@ void fetch_task(void *pvParameters) {
 
     scheduler_unload_nvs_into_ram();
 
-  cleanup_no_client:
+  cleanup:
+    free(json_from_alim_buffer);
+
     // make modem sleepy sleep
     esp_modem_set_mode(get_dce(), ESP_MODEM_MODE_COMMAND);
     modem_wakeup_or_sleep(false);
