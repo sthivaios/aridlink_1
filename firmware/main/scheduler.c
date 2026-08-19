@@ -127,6 +127,8 @@ cleanup:
   cJSON_free((void *)schedule_string);
   cJSON_Delete((cJSON *)root);
 
+  free(schedule_string);
+
   return return_value;
 }
 
@@ -251,6 +253,8 @@ cleanup:
   if (nvs_opened) {
     nvs_close(handle);
   }
+
+  free(current_schedule_json);
 
   return return_value;
 }
