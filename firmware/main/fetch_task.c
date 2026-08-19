@@ -23,8 +23,6 @@
 #include "esp_netif_sntp.h"
 #include "esp_task_wdt.h"
 #include "lte.h"
-#include "mqtt.h"
-#include "mqtt_client.h"
 #include "scheduler.h"
 
 static const char *TAG = "RTOS_FETCH_TASK";
