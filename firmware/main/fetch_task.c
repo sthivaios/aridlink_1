@@ -39,8 +39,15 @@ static void update_time(void) {
   esp_netif_sntp_deinit();
 }
 
+// shitty function cuz im trying to debug a memory leak (this is so fun (not))
+static void log_free_heap() {
+  ESP_LOGW(TAG, "Hello from the fetch_task. FREE HEAP: %lu",
+           esp_get_free_heap_size());
+}
+
 void fetch_task(void *pvParameters) {
 
+  // setup the watchdog to timeout after 30s
   ESP_LOGI(TAG, "Setting up watchdog");
   const esp_task_wdt_config_t wdt_config = {
       .timeout_ms = 300000,
@@ -48,28 +55,30 @@ void fetch_task(void *pvParameters) {
   };
   esp_task_wdt_reconfigure(&wdt_config);
 
-  // ReSharper disable once CppDFAEndlessLoop
+  // ReSharper disable once CppDFAEndlessLoop <- just getting the ide (CLion) to shut up about the endless loop
   for (;;) {
+    // log the free heap in bytes
+    log_free_heap();
+
+    // enable the wdt
     esp_task_wdt_add(nullptr);
+
+    // default delay till the next fetch is 10s
     uint64_t next_delay_ms = SECONDS(10);
 
+    // create an 8kb buffer with malloc for the json response
     char *json_from_alim_buffer = NULL;
     size_t json_from_alim_buffer_size = 8192;
-
     json_from_alim_buffer = malloc(json_from_alim_buffer_size);
     if (json_from_alim_buffer == NULL) {
       ESP_LOGE(TAG, "Failed to allocate memory for json_from_alim_buffer");
       next_delay_ms = SECONDS(20);
       goto cleanup;
     }
-
-    ESP_LOGW(TAG, "Hello from the fetch task... (free heap: %lu)",
-             esp_get_free_heap_size());
-
-    // wake modem up
+    // wake the modem up
     modem_wakeup_or_sleep(true);
 
-    // begin by connecting to lte
+    // connect to lte
     ESP_LOGI(TAG, "Calling lte_connect()");
     if (lte_connect() != LTE_CONNECTED_SUCCESSFULLY) {
       ESP_LOGW(TAG, "Skipping this fetch attempt. Retrying in 20 seconds.");
@@ -77,29 +86,33 @@ void fetch_task(void *pvParameters) {
       goto cleanup;
     }
 
-    // update the local time
+    // update the local time over ntp
     ESP_LOGI(TAG, "Calling update_time()");
     update_time();
 
-    // actually fetch the shadow
+    // actually fetch the schedule from ALIM
     ESP_LOGI(TAG, "Calling fetch_schedule_from_alim()");
-    fetch_schedule_from_alim(ALIM_AUTHORIZATION_HEADER_DEV, json_from_alim_buffer, json_from_alim_buffer_size);
+    fetch_schedule_from_alim(ALIM_AUTHORIZATION_HEADER_DEV,
+                             json_from_alim_buffer, json_from_alim_buffer_size);
 
+    // print the response just for debugging
     ESP_LOGI(TAG, "Pulled JSON from ALIM. The raw response follows:");
-
     printf("%s\n", json_from_alim_buffer);
 
-    scheduler_unload_nvs_into_ram();
+    // scheduler_unload_nvs_into_ram(); <- debugging for now so thats off
 
   cleanup:
+    // free the malloc'd buffer
     free(json_from_alim_buffer);
 
-    // make modem sleepy sleep
+    // put modem back to sleep again
     esp_modem_set_mode(get_dce(), ESP_MODEM_MODE_COMMAND);
     modem_wakeup_or_sleep(false);
 
-    // rerun later
+    // disable the wdt again
     esp_task_wdt_delete(nullptr);
+
+    // rerun the task again later
     ESP_LOGI(TAG, "Task standing by for %llu seconds",
              (unsigned long long)(next_delay_ms / 1000));
     vTaskDelay(pdMS_TO_TICKS(next_delay_ms));
