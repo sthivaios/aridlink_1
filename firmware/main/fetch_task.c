@@ -24,10 +24,7 @@
 #include "esp_netif_sntp.h"
 #include "esp_task_wdt.h"
 #include "lte.h"
-
-// #include "scheduler.h"
-
-#define JSON_BUFFER 8192
+#include "scheduler.h"
 
 static const char *TAG = "fetch_task";
 
@@ -54,10 +51,12 @@ void fetch_task(void *pvParameters) {
   esp_task_wdt_reconfigure(&wdt_config);
 
   // buffer for the JSON from the server
-  static char json_from_alim_buffer[JSON_BUFFER];
+  static char json_from_alim_buffer[CONFIG_ALIM_RESPONSE_BUFFER_SIZE];
 
   // ReSharper disable once CppDFAEndlessLoop <-- this is just to get the ide (CLion) to shut up about the endless loop lol
   for (;;) {
+    ESP_LOGW(TAG, "Starting fetch task. Free heap: %d bytes", esp_get_free_heap_size());
+
     // enable the wdt
     esp_task_wdt_add(nullptr);
 
@@ -82,13 +81,14 @@ void fetch_task(void *pvParameters) {
     // actually fetch the schedule from ALIM
     ESP_LOGI(TAG, "Calling fetch_schedule_from_alim()");
     fetch_schedule_from_alim(ALIM_AUTHORIZATION_HEADER_DEV,
-                             json_from_alim_buffer, JSON_BUFFER);
+                             json_from_alim_buffer, CONFIG_ALIM_RESPONSE_BUFFER_SIZE);
 
     // print the response just for debugging
     ESP_LOGI(TAG, "Pulled JSON from ALIM. The raw response follows:");
     printf("%s\n", json_from_alim_buffer);
 
-    // scheduler_unload_nvs_into_ram(); <- commented out for now cuz im debugging the leak
+    scheduler_load_from_json_to_nvs(json_from_alim_buffer);
+    scheduler_unload_nvs_into_ram();
 
   cleanup:
     // put modem back to sleep again
