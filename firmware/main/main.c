@@ -24,6 +24,7 @@
 #include "esp_sntp.h"
 #include "fetch_task.h"
 #include "lte.h"
+#include "memlog.h"
 #include "nvs_flash.h"
 #include "portmacro.h"
 #include "scheduler.h"
@@ -60,6 +61,11 @@ void app_main(void) {
   esp_netif_init();
   esp_event_loop_create_default();
   lte_init();
+
+#ifdef CONFIG_MEMLOG_TASK_ENABLED
+  init_telemetry_uart();
+  xTaskCreate(telemetry_task, "telemetry", 2048, NULL, 5, NULL);
+#endif
 
   // create fetch task
   BaseType_t const fetch_task_returned =

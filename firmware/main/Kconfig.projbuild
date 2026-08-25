@@ -13,3 +13,21 @@ menu "AridLink Configuration"
         default 115200
 
 endmenu
+
+menu "AridLink Development Tools"
+
+    menu "MEMLOG Task"
+
+        config MEMLOG_TASK_ENABLED
+                bool "Enable the UART memory logging RTOS task"
+                default n
+                help
+                    Enables a task that logs the heap usage every second, in a CSV format, over UART.
+
+        config MEMLOG_TASK_UART_PIN
+                int "The pin used for the memory logging task's UART comms"
+                default 40
+
+    endmenu
+
+endmenu
