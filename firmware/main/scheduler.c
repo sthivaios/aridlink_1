@@ -26,11 +26,14 @@
 #include "esp_log.h"
 #include "nvs.h"
 
+#include <tgmath.h>
+
 static const char *TAG = "valve_scheduler";
 volatile static bool schedule_changed = false;
 
 volatile static Irrigation_Window_t parsed_schedule[64];
 volatile static int parsed_schedule_length = 0;
+static size_t alim_response_buffer_size = CONFIG_ALIM_RESPONSE_BUFFER_SIZE;
 
 /**
  * Parses an AWS IoT shadow JSON string, and stores the schedule as a JSON
@@ -46,41 +49,31 @@ Load_JSON_To_NVS_Status_t scheduler_load_from_json_to_nvs(const char *json) {
   Load_JSON_To_NVS_Status_t return_value = LOAD_JSON_TO_NVS_SUCCESS;
 
   // buffer for current schedule
-  char *schedule_string = NULL;
-   char *current_schedule = NULL;
-  size_t size = 8192;
+  char schedule_string[CONFIG_ALIM_RESPONSE_BUFFER_SIZE];
+  char current_schedule[CONFIG_ALIM_RESPONSE_BUFFER_SIZE];
+
   cJSON *root = cJSON_Parse(json);
+  const cJSON *schedule_version_object = NULL;
+  const char *schedule_version = NULL;
+
   bool nvs_opened = false;
   nvs_handle_t handle = 0;
 
-  current_schedule = malloc(size);
-  if (current_schedule == NULL) {
-    return_value = LOAD_JSON_TO_NVS_OUT_OF_MEMORY;
-    goto cleanup;
-  }
-
-  // parse json to only keep the desired.schedule section
   if (root == NULL) {
     return_value = LOAD_JSON_TO_NVS_PARSING_FAILED;
     goto cleanup;
   }
-  cJSON *state = cJSON_GetObjectItem(root, "state");
-  if (state == NULL) {
-    return_value = LOAD_JSON_TO_NVS_PARSING_FAILED;
-    goto cleanup;
-  }
-  cJSON *desired = cJSON_GetObjectItem(state, "desired");
-  if (desired == NULL) {
-    return_value = LOAD_JSON_TO_NVS_PARSING_FAILED;
-    goto cleanup;
-  }
-  cJSON *schedule = cJSON_GetObjectItem(desired, "schedule");
+
+  schedule_version_object = cJSON_GetObjectItem(root, "schedule_version");
+  schedule_version = cJSON_GetStringValue(schedule_version_object);
+
+  cJSON *schedule = cJSON_GetObjectItem(root, "schedule");
   if (schedule == NULL) {
     return_value = LOAD_JSON_TO_NVS_PARSING_FAILED;
     goto cleanup;
   }
-  schedule_string = cJSON_Print(schedule);
-  if (schedule_string == NULL) {
+
+  if (!cJSON_PrintPreallocated(schedule, schedule_string, CONFIG_ALIM_RESPONSE_BUFFER_SIZE, false)) {
     return_value = LOAD_JSON_TO_NVS_PARSING_FAILED;
     goto cleanup;
   }
@@ -95,13 +88,18 @@ Load_JSON_To_NVS_Status_t scheduler_load_from_json_to_nvs(const char *json) {
   nvs_opened = true;
 
   // get the old schedule from nvs
-  if (nvs_get_str(handle, "current_sched", current_schedule, &size) != ESP_OK) {
+  if (nvs_get_str(handle, "current_sched", current_schedule,
+                  &alim_response_buffer_size) != ESP_OK) {
     return_value = LOAD_JSON_TO_NVS_WRITE_TO_NVS_FAILED;
     goto cleanup;
   };
 
   // write the new schedule to nvs
   if (nvs_set_str(handle, "current_sched", schedule_string) != ESP_OK) {
+    return_value = LOAD_JSON_TO_NVS_WRITE_TO_NVS_FAILED;
+    goto cleanup;
+  }
+  if (nvs_set_str(handle, "sched_version", schedule_version) != ESP_OK) {
     return_value = LOAD_JSON_TO_NVS_WRITE_TO_NVS_FAILED;
     goto cleanup;
   }
@@ -124,10 +122,11 @@ cleanup:
   }
 
   // free up json stuff
-  cJSON_free((void *)schedule_string);
-  cJSON_Delete((cJSON *)root);
-
-  free(schedule_string);
+  // cJSON_free((void *)schedule_string);
+  // cJSON_free((void *)schedule_version_object);
+  // cJSON_free((void *)schedule_version);
+  // cJSON_free((void *)root);
+  cJSON_Delete(root);
 
   return return_value;
 }
@@ -146,18 +145,13 @@ Unload_Schedule_Into_RAM_Status_t scheduler_unload_nvs_into_ram() {
   ESP_LOGI(TAG, "Loading schedule from NVS into RAM...");
 
   // initialize nvs variables and buffers and handles and stuff
-  char *current_schedule_json = NULL;
-  size_t size = 8192;
+  char current_schedule_json[CONFIG_ALIM_RESPONSE_BUFFER_SIZE];
+
   nvs_handle_t handle;
   cJSON *root = NULL;
   bool nvs_opened = false;
-  Unload_Schedule_Into_RAM_Status_t return_value = UNLOAD_SCHEDULE_INTO_RAM_SUCCESS;
-
-  current_schedule_json = malloc(size);
-  if (current_schedule_json == NULL) {
-    return_value = UNLOAD_SCHEDULE_INTO_RAM_OUT_OF_MEMORY;
-    goto cleanup;
-  }
+  Unload_Schedule_Into_RAM_Status_t return_value =
+      UNLOAD_SCHEDULE_INTO_RAM_SUCCESS;
 
   // open nvs and grab schedule json string
   if (nvs_open("aridlink_sched", NVS_READWRITE, &handle) != ESP_OK) {
@@ -168,13 +162,18 @@ Unload_Schedule_Into_RAM_Status_t scheduler_unload_nvs_into_ram() {
 
   // mark nvs as opened so the cleanup code knows to close it
   nvs_opened = true;
+  ESP_LOGI(TAG, "NVS opened.");
 
-  if (nvs_get_str(handle, "current_sched", current_schedule_json, &size) !=
-      ESP_OK) {
-    ESP_LOGE(TAG, "Cannot schedule from NVS!");
+  if (nvs_get_str(handle, "current_sched", current_schedule_json,
+                  &alim_response_buffer_size) != ESP_OK) {
+    ESP_LOGE(TAG, "Cannot load schedule from NVS!");
     return_value = UNLOAD_SCHEDULE_INTO_RAM_NVS_FAILED;
     goto cleanup;
   };
+
+  ESP_LOGI(TAG, "Schedule loaded from NVS.");
+
+  // printf("schedule: %s\n", current_schedule_json);
 
   // get root array and length
   root = cJSON_Parse(current_schedule_json);
@@ -184,10 +183,13 @@ Unload_Schedule_Into_RAM_Status_t scheduler_unload_nvs_into_ram() {
   }
   const int array_length = cJSON_GetArraySize(root);
 
+  ESP_LOGI(TAG, "Got array length.");
+
   parsed_schedule_length = 0;
 
   // iterate through the array
   for (int i = 0; i < array_length; i++) {
+    ESP_LOGI(TAG, "ARRAY ITERATION: %d", i);
 
     // grab object from array
     cJSON *item = cJSON_GetArrayItem(root, i);
@@ -198,52 +200,43 @@ Unload_Schedule_Into_RAM_Status_t scheduler_unload_nvs_into_ram() {
     }
 
     // parse time and skip to next object if it cant
-    cJSON *start_time = cJSON_GetObjectItem(item, "start");
+    cJSON *start_time = cJSON_GetArrayItem(item, 0);
     if (start_time == NULL) {
       continue;
     }
 
-    // parse time and skip to next object if it cant
-    cJSON *duration_seconds = cJSON_GetObjectItem(item, "duration_s");
+    // parse duration and skip to next object if it cant
+    cJSON *duration_seconds = cJSON_GetArrayItem(item, 1);
     if (duration_seconds == NULL) {
       continue;
     }
 
-    char *end;
-    int start_hours = (int)strtol(start_time->valuestring, &end, 10);
-    if (end == start_time->valuestring || *end != ':') {
-      ESP_LOGE(TAG, "Failed to parse hours!");
-      return_value = UNLOAD_SCHEDULE_INTO_RAM_TIME_PARSING_FAILED;
-      goto cleanup;
-    }
-
-    int start_minutes = (int)strtol(end + 1, &end, 10);
-    if (*end != '\0') {
-      ESP_LOGE(TAG, "Failed to parse minutes!");
-      return_value = UNLOAD_SCHEDULE_INTO_RAM_TIME_PARSING_FAILED;
-      goto cleanup;
+    // parse valve and skip to next object if it cant
+    cJSON *valve_id = cJSON_GetArrayItem(item, 2);
+    if (valve_id == NULL) {
+      continue;
     }
 
     const Irrigation_Window_t irrigation_window = {
         .duration_s = duration_seconds->valueint,
-        .start_hour = start_hours,
-        .start_minute = start_minutes,
+        .start_time = start_time->valueint,
+        .valve_id = valve_id->valueint,
     };
 
     parsed_schedule[parsed_schedule_length] = irrigation_window;
     parsed_schedule_length++;
   }
 
-  if (schedule_changed) {
-    ESP_LOGW(TAG, "UPDATED SCHEDULE FOLLOWS:");
-    ESP_LOGW(TAG, "==================================================");
-    for (int i = 0; i < parsed_schedule_length; i++) {
-      const Irrigation_Window_t irrigation_window = parsed_schedule[i];
-      ESP_LOGW(TAG, "%d) Starts at %02d:%02d, and lasts for %d seconds", i,
-               irrigation_window.start_hour, irrigation_window.start_minute,
-               irrigation_window.duration_s);
-    }
-  }
+  ESP_LOGI(TAG, "Iterating through array finished.");
+
+  /*ESP_LOGW(TAG, "UPDATED SCHEDULE FOLLOWS:");
+  ESP_LOGW(TAG, "==================================================");
+  for (int i = 0; i < parsed_schedule_length; i++) {
+    const Irrigation_Window_t irrigation_window = parsed_schedule[i];
+    ESP_LOGW(TAG, "%d) Starts at %03d, and lasts for %d seconds, on valve %d", i,
+             irrigation_window.start_time, irrigation_window.duration_s,
+             irrigation_window.valve_id);
+  }*/
 
   // reset schedule changed flag since it was handled here
   schedule_changed = false;
@@ -253,8 +246,6 @@ cleanup:
   if (nvs_opened) {
     nvs_close(handle);
   }
-
-  free(current_schedule_json);
 
   return return_value;
 }
@@ -271,8 +262,8 @@ static time_t parse_into_timestamp(const Irrigation_Window_t irrigation_window,
   struct tm t;
   localtime_r(&now, &t);
 
-  t.tm_hour = irrigation_window.start_hour;
-  t.tm_min = irrigation_window.start_minute;
+  t.tm_hour = irrigation_window.start_time / 60;
+  t.tm_min = irrigation_window.start_time % 60;
   t.tm_sec = 0;
 
   return mktime(&t);

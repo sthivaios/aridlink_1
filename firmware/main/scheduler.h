@@ -26,9 +26,9 @@
 #include <time.h>
 
 typedef struct {
-  int start_hour;
-  int start_minute;
+  int start_time;
   uint32_t duration_s;
+  int valve_id;
 } Irrigation_Window_t;
 
 typedef enum {

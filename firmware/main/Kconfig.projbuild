@@ -1,5 +1,9 @@
 menu "AridLink Configuration"
 
+    config ALIM_RESPONSE_BUFFER_SIZE
+        int "ALIM Response buffer size (bytes)"
+        default 2048
+
     config ARIDLINK_AWS_ENDPOINT
         string "AWS IoT Endpoint"
         default ""
