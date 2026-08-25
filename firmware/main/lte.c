@@ -110,11 +110,14 @@ void lte_init(void) {
 }
 
 LTE_Connect_Status_t lte_connect(void) {
+  // clear the GOT_IP_BIT
   xEventGroupClearBits(s_event_group, GOT_IP_BIT);
 
+  // buffer to store the imei in
   ESP_LOGI(TAG, "Create IMEI char buffer");
   char imei[32];
 
+  // try to connect to the modem module itself with a MAX_MODEM_CONTACT_ATTEMPTS limit
   ESP_LOGI(TAG, "Attempting to connect to the modem...");
   int modem_contact_attempts = 0;
   while (esp_modem_get_imei(dce, imei) == ESP_FAIL) {
@@ -127,6 +130,7 @@ LTE_Connect_Status_t lte_connect(void) {
   }
   ESP_LOGI(TAG, "IMEI: %s", imei);
 
+  // get the rssi and ber
   int rssi, ber;
   if (esp_modem_get_signal_quality(dce, &rssi, &ber) != ESP_OK) {
     ESP_LOGE(TAG, "Could not get LTE signal integrity!");
@@ -134,11 +138,13 @@ LTE_Connect_Status_t lte_connect(void) {
   }
   ESP_LOGI(TAG, "RSSI: %ddBm", convert_rssi_to_dbm(rssi));
 
+  // set the modem from cmd mode to data mode
   if (esp_modem_set_mode(dce, ESP_MODEM_MODE_DATA) != ESP_OK) {
     ESP_LOGE(TAG, "Could not set modem mode!");
     return LTE_MODEM_COULDNT_SET_MODE;
   }
 
+  // wait for modem to get ip or timeout at 10s
   ESP_LOGI(TAG, "Waiting for IP...");
   const EventBits_t bits = xEventGroupWaitBits(
       s_event_group, GOT_IP_BIT, pdFALSE, pdFALSE, pdMS_TO_TICKS(SECONDS(10)));
@@ -149,6 +155,7 @@ LTE_Connect_Status_t lte_connect(void) {
     return LTE_MODEM_COULDNT_GET_IP;
   }
 
+  // returns once connected
   ESP_LOGI(TAG, "LTE connected!");
   return LTE_CONNECTED_SUCCESSFULLY;
 }
