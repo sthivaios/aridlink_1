@@ -56,4 +56,6 @@ void set_schedule_changed(bool value);
 
 void irrigation_scheduler(void *pvParameters);
 
+void schedule_mutex_init(void);
+
 #endif // ARIDLINK_SCHEDULER_H
