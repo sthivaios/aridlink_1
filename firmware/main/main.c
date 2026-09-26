@@ -33,7 +33,7 @@
 
 static const char *TAG = "main_task_pro_max_ultra";
 static TaskHandle_t fetch_task_handle = nullptr;
-// static TaskHandle_t scheduler_task_handle = nullptr;
+static TaskHandle_t scheduler_task_handle = nullptr;
 
 void app_main(void) {
   // set valve gpio direction
@@ -69,7 +69,7 @@ void app_main(void) {
 
   // create fetch task
   BaseType_t const fetch_task_returned =
-      xTaskCreate(fetch_task, "INTERNET_STUFF_FETCH_TASK", 12288, NULL, 0,
+      xTaskCreate(fetch_task, "INTERNET_STUFF_FETCH_TASK", 12288, NULL, 1,
                   &fetch_task_handle);
 
   // explode completely if task couldnt be created
@@ -78,14 +78,16 @@ void app_main(void) {
     abort();
   }
 
-  // // create scheduler task
-  // BaseType_t const scheduler_task_returned =
-  //     xTaskCreate(irrigation_scheduler, "IRRIGATION_SCHEDULER_TASK", 8192, NULL, 1,
-  //                 &scheduler_task_handle);
+  schedule_mutex_init();
+
+  // create scheduler task
+  BaseType_t const scheduler_task_returned =
+      xTaskCreate(irrigation_scheduler, "IRRIGATION_SCHEDULER_TASK", 8192, NULL, 20,
+                  &scheduler_task_handle);
 
   // explode completely if task couldnt be created
-  // if (scheduler_task_returned != pdPASS) {
-  //   ESP_LOGE(TAG, "Failed to create scheduler task");
-  //   abort();
-  // }
+  if (scheduler_task_returned != pdPASS) {
+    ESP_LOGE(TAG, "Failed to create scheduler task");
+    abort();
+  }
 }
