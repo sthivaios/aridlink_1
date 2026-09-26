@@ -22,7 +22,7 @@
 static const char *TAG = "ALIM_TASK";
 
 esp_err_t fetch_schedule_from_alim(const char *auth_header, char *out_buf,
-                                   size_t out_buf_size) {
+                                   size_t out_buf_size, unsigned int *status_code) {
   // check if the arguments are invalid
   if (out_buf == NULL || out_buf_size == 0)
     return ESP_ERR_INVALID_ARG;
@@ -59,6 +59,7 @@ esp_err_t fetch_schedule_from_alim(const char *auth_header, char *out_buf,
   // read response headers and status code
   esp_http_client_fetch_headers(client);
   const unsigned int status = esp_http_client_get_status_code(client);
+  *status_code = status;
 
   // read the response body into the buffer
   int total = 0;

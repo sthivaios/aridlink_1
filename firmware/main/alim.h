@@ -31,6 +31,6 @@
 
 // function definitions
 esp_err_t fetch_schedule_from_alim(const char *auth_header, char *out_buf,
-                     size_t out_buf_size);
+                                   size_t out_buf_size, unsigned int *status_code);
 
 #endif // ARIDLINK_ALIM_H
