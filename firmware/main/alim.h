@@ -27,6 +27,7 @@
 #include "esp_log.h"
 
 // yes this is a development authorization header i'll remove this very soon
+// TODO: Obviously remove this shit lmao
 #define ALIM_AUTHORIZATION_HEADER_DEV "Basic MzUxNDQwMTc0NTEzNzMyOmY3YjkzMzVjNDVjYzgyNWJhZDgyNGY2MmNlNmNmNzQ3ZjY2NzkyNjUyNzU0NDEzYzU4MjVhYmQ2N2Y3MWM5N2I5YzhiZmM0YzhhZThhZWEwNzk3Y2FmNjhlZGNkMDJmODc5Y2I2NzY0YWM2OTk4OThmOThiMWRiMWNhNGU2YTA5"
 
 // function definitions
