@@ -127,9 +127,8 @@ Load_JSON_To_NVS_Status_t scheduler_load_from_json_to_nvs(const char *json) {
   nvs_opened = true;
 
   // get the old schedule version string from nvs
-  old_schedule_version_size = sizeof(old_schedule_version);
   if (nvs_get_str(handle, "sched_version", old_schedule_version,
-                  &old_schedule_version_size) != ESP_OK) {
+                  &schedule_version_size) != ESP_OK) {
     return_value = LOAD_JSON_TO_NVS_WRITE_TO_NVS_FAILED;
     goto cleanup;
   };
