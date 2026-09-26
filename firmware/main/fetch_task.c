@@ -55,6 +55,7 @@ void fetch_task(void *pvParameters) {
 
   // ReSharper disable once CppDFAEndlessLoop <-- this is just to get the ide (CLion) to shut up about the endless loop lol
   for (;;) {
+    // TODO: Remove this after testing
     ESP_LOGW(TAG, "Starting fetch task. Free heap: %d bytes", esp_get_free_heap_size());
 
     // enable the wdt
@@ -69,8 +70,8 @@ void fetch_task(void *pvParameters) {
     // connect to lte
     ESP_LOGI(TAG, "Calling lte_connect()");
     if (lte_connect() != LTE_CONNECTED_SUCCESSFULLY) {
-      ESP_LOGW(TAG, "Skipping this fetch attempt. Retrying in 20 seconds.");
-      next_delay_ms = SECONDS(20);
+      ESP_LOGW(TAG, "Skipping this fetch attempt. Retrying in 10 seconds.");
+      next_delay_ms = SECONDS(10);
       goto cleanup;
     }
 
@@ -78,17 +79,28 @@ void fetch_task(void *pvParameters) {
     ESP_LOGI(TAG, "Calling update_time()");
     update_time();
 
+
+    // init the status code var, the actual value for this is returned below
+    unsigned int status_code = 0;
+
     // actually fetch the schedule from ALIM
     ESP_LOGI(TAG, "Calling fetch_schedule_from_alim()");
-    fetch_schedule_from_alim(ALIM_AUTHORIZATION_HEADER_DEV,
-                             json_from_alim_buffer, CONFIG_ALIM_RESPONSE_BUFFER_SIZE);
+    const err_t alim_response = fetch_schedule_from_alim(ALIM_AUTHORIZATION_HEADER_DEV,
+                             json_from_alim_buffer, CONFIG_ALIM_RESPONSE_BUFFER_SIZE, &status_code);
 
-    // print the response just for debugging
-    ESP_LOGI(TAG, "Pulled JSON from ALIM. The raw response follows:");
-    printf("%s\n", json_from_alim_buffer);
+    // if the response is not ESP_OK then we skip ahead to the end of the loop to retry in 10 seconds
+    if (alim_response != ESP_OK) {
+      ESP_LOGE(TAG, "Failed to fetch schedule from ALIM with HTTP error code \"%d\". Refer to the ALIM documentation.", status_code);
+      ESP_LOGW(TAG, "Skipping this fetch attempt. Retrying in 10 seconds.");
+      next_delay_ms = SECONDS(10);
+      goto cleanup;
+    }
+
+    // print the response just for debugging --- TODO: Remove this later
+    // ESP_LOGI(TAG, "Pulled JSON from ALIM. The raw response follows:");
+    // printf("%s\n", json_from_alim_buffer);
 
     scheduler_load_from_json_to_nvs(json_from_alim_buffer);
-    scheduler_unload_nvs_into_ram();
 
   cleanup:
     // put modem back to sleep again
