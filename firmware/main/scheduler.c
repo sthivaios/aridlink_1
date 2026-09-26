@@ -28,27 +28,29 @@
 
 #include <tgmath.h>
 
-static const char *TAG = "valve_scheduler";
+// flag to indicate if the schedule on alim is different from the local one
 volatile static bool schedule_changed = false;
 
+// mutex for the global local schedule that is loaded into memory
 static SemaphoreHandle_t schedule_mutex;
+
+// the actual global local schedule in ram
 volatile static Irrigation_Window_t global_parsed_schedule[64];
-static uint8_t number_of_windows_in_global_parsed_schedule = 0;
 
-static size_t old_schedule_version_size = 64;
-
+// the length of the parsed schedule in ram
 volatile static int parsed_schedule_length = 0;
+
+// size for buffers holding schedule version strings
+static size_t schedule_version_size = 64;
+
+// size for buffers holding alim json response strings
 static size_t alim_response_buffer_size = CONFIG_ALIM_RESPONSE_BUFFER_SIZE;
 
+
+// small func to create the schedule mutex - called from app_main()
 void schedule_mutex_init(void) {
   schedule_mutex = xSemaphoreCreateMutex();
   configASSERT(schedule_mutex != NULL);
-}
-
-void print_hex(const char *s) {
-  while (*s)
-    printf("%02x", (unsigned int)*s++);
-  printf("\n");
 }
 
 /**
@@ -73,7 +75,7 @@ Load_JSON_To_NVS_Status_t scheduler_load_from_json_to_nvs(const char *json) {
 
   // buffer for the version string of the old schedule - this is retrieved from
   // NVS
-  char old_schedule_version[old_schedule_version_size];
+  char old_schedule_version[schedule_version_size];
 
   // root cJSON object
   cJSON *root = cJSON_Parse(json);
@@ -289,7 +291,6 @@ Unload_Schedule_Into_RAM_Status_t scheduler_unload_nvs_into_ram() {
     if (xSemaphoreTake(schedule_mutex, pdMS_TO_TICKS(100)) == pdTRUE) {
       memcpy((void *)global_parsed_schedule, local_buf,
              sizeof(Irrigation_Window_t) * head_in_array);
-      number_of_windows_in_global_parsed_schedule = head_in_array;
       xSemaphoreGive(schedule_mutex);
     } else {
       attempts++;
