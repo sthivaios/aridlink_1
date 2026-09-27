@@ -56,6 +56,9 @@ void app_main(void) {
   setenv("TZ", "UTC", 1);
   tzset();
 
+  // init schedule mutex
+  schedule_mutex_init();
+
   // init network interface stuff
   ESP_LOGI(TAG, "Attempting to init network interface shit");
   esp_netif_init();
@@ -78,8 +81,6 @@ void app_main(void) {
     abort();
   }
 
-  schedule_mutex_init();
-
   // create scheduler task
   BaseType_t const scheduler_task_returned =
       xTaskCreate(irrigation_scheduler, "IRRIGATION_SCHEDULER_TASK", 8192, NULL, 20,
@@ -89,5 +90,7 @@ void app_main(void) {
   if (scheduler_task_returned != pdPASS) {
     ESP_LOGE(TAG, "Failed to create scheduler task");
     abort();
+  } else {
+    ESP_LOGW(TAG, "Scheduler task created successfully!");
   }
 }
