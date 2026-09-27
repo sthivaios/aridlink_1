@@ -395,6 +395,7 @@ void irrigation_scheduler(void *pvParameters) {
           abort();
         }
       }
+      ESP_LOGW(TASK_TAG, "Updated schedule loaded into memory successfully!");
     }
 
     // get current time
