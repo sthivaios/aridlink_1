@@ -332,8 +332,6 @@ cleanup:
     nvs_close(handle);
   }
 
-  ESP_LOGE(TASK_TAG, "Finished loading schedule into memory!");
-
   return return_value;
 }
 
