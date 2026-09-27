@@ -53,6 +53,10 @@ void schedule_mutex_init(void) {
   configASSERT(schedule_mutex != NULL);
 }
 
+static volatile bool current_valve_states[4] = {false, false, false, false};
+static volatile bool desired_valve_states[4] = {false, false, false, false};
+const static bool valve_pins[4] = {GPIO_NUM_26, GPIO_NUM_27, GPIO_NUM_28, GPIO_NUM_29};
+
 /**
  * Parses an AWS IoT shadow JSON string, and stores the schedule as a JSON
  * string into NVS.
@@ -279,22 +283,24 @@ Unload_Schedule_Into_RAM_Status_t scheduler_unload_nvs_into_ram() {
     };
 
     // store the parsed schedule window into the schedule array
-    global_parsed_schedule[head_in_array] = irrigation_window;
+    local_buf[head_in_array] = irrigation_window;
     head_in_array++;
   }
 
   // attempt to store the parsed schedule into the global buffer
   // we try to grab the mutex first.
+  int attempts = 0;
   for (;;) {
-    int attempts = 0;
     if (xSemaphoreTake(schedule_mutex, pdMS_TO_TICKS(100)) == pdTRUE) {
       memcpy((void *)global_parsed_schedule, local_buf,
              sizeof(Irrigation_Window_t) * head_in_array);
       xSemaphoreGive(schedule_mutex);
+      break;
     } else {
       attempts++;
       if (attempts > 6) {
-        break;
+        return_value = UNLOAD_SCHEDULE_INTO_RAM_FAILED_TO_TAKE_MUTEX;
+        goto cleanup;
       }
       vTaskDelay(pdMS_TO_TICKS(100));
     }
@@ -325,6 +331,8 @@ cleanup:
   if (nvs_opened) {
     nvs_close(handle);
   }
+
+  ESP_LOGE(TASK_TAG, "Finished loading schedule into memory!");
 
   return return_value;
 }
@@ -357,9 +365,6 @@ void irrigation_scheduler(void *pvParameters) {
 
   static const char *TASK_TAG = "irrigation_scheduler_task";
 
-  static bool previous_valve_state = false;
-  static bool valve_state = false;
-
   // attempt to unload into ram three times
   int attempts_to_unload = 0;
   while (scheduler_unload_nvs_into_ram() != ESP_OK) {
@@ -374,11 +379,13 @@ void irrigation_scheduler(void *pvParameters) {
 
   // ReSharper disable once CppDFAEndlessLoop
   for (;;) {
+    // clear valve states
+    for (int i = 0; i < 4; i++) {
+      desired_valve_states[i] = false;
+    }
 
-    valve_state = false;
-
+    // ESP_LOGW(TASK_TAG, "CHECKING IN THE IRRIGATION SCHEDULER WHETHER THE CHANGED FLAG IS SET");
     if (schedule_changed) {
-      ESP_LOGW(TASK_TAG, "Schedule change detected!");
       // attempt to unload into ram three times
       attempts_to_unload = 0;
       while (scheduler_unload_nvs_into_ram() != ESP_OK) {
@@ -403,20 +410,21 @@ void irrigation_scheduler(void *pvParameters) {
 
       if (now >= irrigation_timestamp &&
           now < (irrigation_timestamp + irrigation_window.duration_s)) {
-        valve_state = true;
-        break;
+        desired_valve_states[irrigation_window.valve_id] = true;
       }
     }
 
-    if (valve_state != previous_valve_state) {
-      gpio_set_level(VALVE_GPIO, valve_state);
-      previous_valve_state = valve_state;
-      if (valve_state) {
-        ESP_LOGI(TASK_TAG, "====== The valve is now OPEN. ======");
-      } else {
-        ESP_LOGI(TASK_TAG, "====== The valve is now CLOSED. ======");
+    for (int i = 0; i < 4; i++) {
+      gpio_set_level(valve_pins[i], desired_valve_states[i]);
+    }
+
+    for (int i = 0; i < 4; i++) {
+      if (current_valve_states[i] != desired_valve_states[i]) {
+        ESP_LOGI(TASK_TAG, "Valve %d state changed from %d to %d", i,
+                 current_valve_states[i], desired_valve_states[i]);
       }
     }
+    memcpy((void *)current_valve_states, (void *)desired_valve_states, sizeof(bool) * 4);
 
     // cooldown for half a second before scheduling again
     vTaskDelay(pdMS_TO_TICKS(500));
