@@ -77,8 +77,11 @@ void app_main(void) {
 
   // explode completely if task couldnt be created
   if (fetch_task_returned != pdPASS) {
-    ESP_LOGE(TAG, "Failed to create fetch task");
+    // TODO: Fix error handling: dont abort but fall back to local schedule if fetch task cant be created after 4 abort() calls
+    ESP_LOGE(TAG, "FATAL: FAILED TO CREATE FETCH TASK - HARD RESETTING...");
     abort();
+  } else {
+    ESP_LOGI(TAG, "Fetch RTOS task created successfully!");
   }
 
   // create scheduler task
@@ -88,9 +91,9 @@ void app_main(void) {
 
   // explode completely if task couldnt be created
   if (scheduler_task_returned != pdPASS) {
-    ESP_LOGE(TAG, "Failed to create scheduler task");
+    ESP_LOGE(TAG, "FATAL: FAILED TO CREATE SCHEDULER TASK - HARD RESETTING...");
     abort();
   } else {
-    ESP_LOGW(TAG, "Scheduler task created successfully!");
+    ESP_LOGI(TAG, "Scheduler RTOS task created successfully!");
   }
 }
