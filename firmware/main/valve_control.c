@@ -43,6 +43,13 @@ ValveControl_Status_T valve_control_set_desired_state(const int valve, const boo
   return VALVE_CONTROL_OK;
 }
 
+ValveControl_Status_T valve_control_clear_desired_states(void) {
+  for (int i = 0; i < VALVE_COUNT; i++) {
+    valve_pins[i].desired_state = false;
+  }
+  return VALVE_CONTROL_OK;
+}
+
 ValveControl_Status_T valve_control_commit_states(void) {
   ValveControl_Status_T status = VALVE_CONTROL_OK;
 

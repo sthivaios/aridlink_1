@@ -16,6 +16,7 @@ typedef enum {
 
 ValveControl_Status_T valve_control_init(void);
 ValveControl_Status_T valve_control_set_desired_state(const int valve, const bool state);
+ValveControl_Status_T valve_control_clear_desired_states(void);
 ValveControl_Status_T valve_control_commit_states(void);
 
 #endif // ARIDLINK_GPIO_H
