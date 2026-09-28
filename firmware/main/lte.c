@@ -62,7 +62,6 @@ void modem_wakeup_or_sleep(const bool wakeup) {
     gpio_set_level(GPIO_NUM_17, 1);
   }
   static const char *SUB_TAG = "modem_power_control";
-  gpio_set_direction(GPIO_NUM_4, GPIO_MODE_OUTPUT);
   gpio_set_level(GPIO_NUM_4, 1);
   if (wakeup) {
     ESP_LOGI(SUB_TAG, "Stand by while the modem wakes up...");

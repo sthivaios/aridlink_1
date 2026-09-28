@@ -28,6 +28,7 @@
 #include "nvs_flash.h"
 #include "portmacro.h"
 #include "scheduler.h"
+#include "valve_control.h"
 
 #include <time.h>
 
@@ -36,11 +37,13 @@ static TaskHandle_t fetch_task_handle = nullptr;
 static TaskHandle_t scheduler_task_handle = nullptr;
 
 void app_main(void) {
-  // set valve gpio direction
-  gpio_set_direction(VALVE_GPIO, GPIO_MODE_OUTPUT);
+  // set modem gpio direction
+  gpio_set_direction(GPIO_NUM_4, GPIO_MODE_OUTPUT);
   gpio_set_direction(GPIO_NUM_17, GPIO_MODE_OUTPUT);
-  gpio_set_level(VALVE_GPIO, 0);
+  gpio_set_level(GPIO_NUM_4, 0);
   gpio_set_level(GPIO_NUM_17, 0);
+
+  valve_control_init();
 
   // Initialize NVS stuff
   ESP_LOGI(TAG, "Attempting to initialise NVS shit");
