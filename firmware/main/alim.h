@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 Stratos Thivaios <me@sthivaios.dev>
+* Copyright (C) 2026 Stratos Thivaios <me@sthivaios.dev>
  *
  * This file is part of the AridLink 1 Firmware.
  *
@@ -17,28 +17,21 @@
  * along with AridLink 1 Firmware. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef ARIDLINK_MQTT_H
-#define ARIDLINK_MQTT_H
+#ifndef ARIDLINK_ALIM_H
+#define ARIDLINK_ALIM_H
 
-#include "mqtt_client.h"
-#include "esp_log.h"
-#include "esp_netif.h"
-#include "esp_system.h"
-#include "sdkconfig.h"
-#include <inttypes.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
+// includes
 #include "esp_crt_bundle.h"
-#include "shadow.h"
+#include "esp_err.h"
+#include "esp_http_client.h"
+#include "esp_log.h"
 
-extern EventGroupHandle_t mqtt_event_group;
+// yes this is a development authorization header i'll remove this very soon
+// TODO: Obviously remove this shit lmao
+#define ALIM_AUTHORIZATION_HEADER_DEV "Basic MzUxNDQwMTc0NTEzNzMyOmY3YjkzMzVjNDVjYzgyNWJhZDgyNGY2MmNlNmNmNzQ3ZjY2NzkyNjUyNzU0NDEzYzU4MjVhYmQ2N2Y3MWM5N2I5YzhiZmM0YzhhZThhZWEwNzk3Y2FmNjhlZGNkMDJmODc5Y2I2NzY0YWM2OTk4OThmOThiMWRiMWNhNGU2YTA5"
 
-#define MQTT_CONNECTED_BIT BIT0
+// function definitions
+esp_err_t fetch_schedule_from_alim(const char *auth_header, char *out_buf,
+                                   size_t out_buf_size, unsigned int *status_code);
 
-extern char shadow_buffer[16384];
-
-esp_mqtt_client_handle_t mqtt_app_start(void);
-void mqtt_init_eventgroup(void);
-
-#endif // ARIDLINK_MQTT_H
+#endif // ARIDLINK_ALIM_H

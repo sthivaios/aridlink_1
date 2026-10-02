@@ -19,14 +19,14 @@
 
 #include "fetch_task.h"
 
+#include "alim.h"
+#include "esp_heap_trace.h"
 #include "esp_netif_sntp.h"
 #include "esp_task_wdt.h"
 #include "lte.h"
-#include "mqtt.h"
-#include "mqtt_client.h"
 #include "scheduler.h"
 
-static const char *TAG = "RTOS_FETCH_TASK";
+static const char *TAG = "fetch_task";
 
 // updates the local time on the system by fetching from ntp
 static void update_time(void) {
@@ -42,6 +42,7 @@ static void update_time(void) {
 
 void fetch_task(void *pvParameters) {
 
+  // setup the watchdog to timeout after 30s
   ESP_LOGI(TAG, "Setting up watchdog");
   const esp_task_wdt_config_t wdt_config = {
       .timeout_ms = 300000,
@@ -49,72 +50,67 @@ void fetch_task(void *pvParameters) {
   };
   esp_task_wdt_reconfigure(&wdt_config);
 
-  // ReSharper disable once CppDFAEndlessLoop
+  // buffer for the JSON from the server
+  static char json_from_alim_buffer[CONFIG_ALIM_RESPONSE_BUFFER_SIZE];
+
+  // ReSharper disable once CppDFAEndlessLoop <-- this is just to get the ide (CLion) to shut up about the endless loop lol
   for (;;) {
+    // TODO: Remove this after testing
+    ESP_LOGW(TAG, "Starting fetch task. Free heap: %d bytes", esp_get_free_heap_size());
+
+    // enable the wdt
     esp_task_wdt_add(nullptr);
-    uint64_t next_delay_ms = SECONDS(10);
 
-    ESP_LOGW(TAG, "Initializing MQTT... (free heap: %lu)",
-             esp_get_free_heap_size());
+    // default delay till the next fetch is 10s
+    uint64_t next_delay_ms = SECONDS(2);
 
-    // wake modem up
+    // wake the modem up
     modem_wakeup_or_sleep(true);
 
-    // begin by connecting to lte
+    // connect to lte
     ESP_LOGI(TAG, "Calling lte_connect()");
     if (lte_connect() != LTE_CONNECTED_SUCCESSFULLY) {
-      ESP_LOGW(TAG, "Skipping this fetch attempt. Retrying in 20 seconds.");
-      next_delay_ms = SECONDS(20);
-      goto cleanup_no_client;
+      ESP_LOGW(TAG, "Skipping this fetch attempt. Retrying in 10 seconds.");
+      next_delay_ms = SECONDS(10);
+      goto cleanup;
     }
 
-    // update the local time
+    // update the local time over ntp
     ESP_LOGI(TAG, "Calling update_time()");
     update_time();
 
-    // start a new mqtt client
-    ESP_LOGI(TAG, "Initializing MQTT shit...");
-    const esp_mqtt_client_handle_t client = mqtt_app_start();
 
-    // wait for the client to actually connect
-    xEventGroupWaitBits(mqtt_event_group, MQTT_CONNECTED_BIT, pdFALSE, pdFALSE,
-                        portMAX_DELAY);
+    // init the status code var, the actual value for this is returned below
+    unsigned int status_code = 0;
 
-    // initialize shadow stuff
-    ESP_LOGI(TAG, "Calling shadow_init()");
-    shadow_init(client);
+    // actually fetch the schedule from ALIM
+    ESP_LOGI(TAG, "Calling fetch_schedule_from_alim()");
+    const err_t alim_response = fetch_schedule_from_alim(ALIM_AUTHORIZATION_HEADER_DEV,
+                             json_from_alim_buffer, CONFIG_ALIM_RESPONSE_BUFFER_SIZE, &status_code);
 
-    // wait for the mqtt client to actually subscribe to the shadow topics
-    xEventGroupWaitBits(shadow_event_group,
-                        SHADOW_SUBSCRIBED_TO_ACCEPTED_TOPIC_BIT |
-                            SHADOW_SUBSCRIBED_TO_REJECTED_TOPIC_BIT,
-                        pdFALSE, pdFALSE, portMAX_DELAY);
+    // if the response is not ESP_OK then we skip ahead to the end of the loop to retry in 10 seconds
+    if (alim_response != ESP_OK) {
+      ESP_LOGE(TAG, "Failed to fetch schedule from ALIM with HTTP error code \"%d\". Refer to the ALIM documentation.", status_code);
+      ESP_LOGW(TAG, "Skipping this fetch attempt. Retrying in 10 seconds.");
+      next_delay_ms = SECONDS(10);
+      goto cleanup;
+    }
 
-    // actually fetch the shadow
-    ESP_LOGI(TAG, "Calling shadow_get()");
-    shadow_get(client);
+    // print the response just for debugging --- TODO: Remove this later
+    // ESP_LOGI(TAG, "Pulled JSON from ALIM. The raw response follows:");
+    // printf("%s\n", json_from_alim_buffer);
 
-    scheduler_unload_nvs_into_ram();
+    scheduler_load_from_json_to_nvs(json_from_alim_buffer);
 
-    // stop/delete mqtt client
-    ESP_LOGI(TAG, "Making the MQTT client explode");
-    esp_mqtt_client_disconnect(client);
-    esp_mqtt_client_stop(client);
-    esp_mqtt_client_destroy(client);
-
-    xEventGroupClearBits(mqtt_event_group, MQTT_CONNECTED_BIT);
-    xEventGroupClearBits(shadow_event_group,
-                         SHADOW_GET_ACCEPTED_BIT | SHADOW_GET_REJECTED_BIT |
-                             SHADOW_SUBSCRIBED_TO_ACCEPTED_TOPIC_BIT |
-                             SHADOW_SUBSCRIBED_TO_REJECTED_TOPIC_BIT);
-
-  cleanup_no_client:
-    // make modem sleepy sleep
+  cleanup:
+    // put modem back to sleep again
     esp_modem_set_mode(get_dce(), ESP_MODEM_MODE_COMMAND);
     modem_wakeup_or_sleep(false);
 
-    // rerun later
+    // disable the wdt again so it doesn't get mad due to the vTaskDelay call
     esp_task_wdt_delete(nullptr);
+
+    // rerun the task again later
     ESP_LOGI(TAG, "Task standing by for %llu seconds",
              (unsigned long long)(next_delay_ms / 1000));
     vTaskDelay(pdMS_TO_TICKS(next_delay_ms));

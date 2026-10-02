@@ -26,15 +26,16 @@
 #include <time.h>
 
 typedef struct {
-  int start_hour;
-  int start_minute;
+  int start_time;
   uint32_t duration_s;
+  int valve_id;
 } Irrigation_Window_t;
 
 typedef enum {
   LOAD_JSON_TO_NVS_SUCCESS,
   LOAD_JSON_TO_NVS_PARSING_FAILED,
   LOAD_JSON_TO_NVS_WRITE_TO_NVS_FAILED,
+  LOAD_JSON_TO_NVS_OUT_OF_MEMORY
 } Load_JSON_To_NVS_Status_t;
 Load_JSON_To_NVS_Status_t scheduler_load_from_json_to_nvs(const char *json);
 
@@ -43,7 +44,9 @@ typedef enum {
   UNLOAD_SCHEDULE_INTO_RAM_SUCCESS,
   UNLOAD_SCHEDULE_INTO_RAM_NVS_FAILED,
   UNLOAD_SCHEDULE_INTO_RAM_PARSING_FAILED,
-  UNLOAD_SCHEDULE_INTO_RAM_TIME_PARSING_FAILED
+  UNLOAD_SCHEDULE_INTO_RAM_TIME_PARSING_FAILED,
+  UNLOAD_SCHEDULE_INTO_RAM_OUT_OF_MEMORY,
+  UNLOAD_SCHEDULE_INTO_RAM_FAILED_TO_TAKE_MUTEX
 } Unload_Schedule_Into_RAM_Status_t;
 Unload_Schedule_Into_RAM_Status_t scheduler_unload_nvs_into_ram();
 
@@ -53,5 +56,7 @@ void scheduler_get_next_action( void * pvParameters );
 void set_schedule_changed(bool value);
 
 void irrigation_scheduler(void *pvParameters);
+
+void schedule_mutex_init(void);
 
 #endif // ARIDLINK_SCHEDULER_H
