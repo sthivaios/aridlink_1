@@ -18,6 +18,7 @@
  */
 
 #include "driver/gpio.h"
+#include "esp_app_desc.h"
 #include "esp_event.h"
 #include "esp_log.h"
 #include "esp_netif.h"
@@ -36,7 +37,15 @@ static const char *TAG = "main_task_pro_max_ultra";
 static TaskHandle_t fetch_task_handle = nullptr;
 static TaskHandle_t scheduler_task_handle = nullptr;
 
+// ReSharper disable once CppUseInternalLinkage <-- make CLion shut up about
+// making this func static
 void app_main(void) {
+  ESP_LOGI(
+      TAG,
+      "AridLink 1 Firmware starting... | fw v%s | idf %s | built %s %s",
+      esp_app_get_description()->version, esp_get_idf_version(), __DATE__,
+      __TIME__);
+
   // set modem gpio direction
   gpio_set_direction(GPIO_NUM_4, GPIO_MODE_OUTPUT);
   gpio_set_direction(GPIO_NUM_17, GPIO_MODE_OUTPUT);
@@ -80,7 +89,8 @@ void app_main(void) {
 
   // explode completely if task couldnt be created
   if (fetch_task_returned != pdPASS) {
-    // TODO: Fix error handling: dont abort but fall back to local schedule if fetch task cant be created after 4 abort() calls
+    // TODO: Fix error handling: dont abort but fall back to local schedule if
+    // fetch task cant be created after 4 abort() calls
     ESP_LOGE(TAG, "FATAL: FAILED TO CREATE FETCH TASK - HARD RESETTING...");
     abort();
   } else {
@@ -89,8 +99,8 @@ void app_main(void) {
 
   // create scheduler task
   BaseType_t const scheduler_task_returned =
-      xTaskCreate(irrigation_scheduler, "IRRIGATION_SCHEDULER_TASK", 8192, NULL, 20,
-                  &scheduler_task_handle);
+      xTaskCreate(irrigation_scheduler, "IRRIGATION_SCHEDULER_TASK", 8192, NULL,
+                  20, &scheduler_task_handle);
 
   // explode completely if task couldnt be created
   if (scheduler_task_returned != pdPASS) {
