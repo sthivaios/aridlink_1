@@ -2,7 +2,8 @@
 #define ARIDLINK_COMMON_H
 
 // macros
-#define SECONDS(x) ((x) * 1000)
-#define HOURS(x) ((x) * 3600 * 1000)
+#define ARIDLINK_SEC_TO_MS(x)   ((x) * 1000UL)
+#define ARIDLINK_MIN_TO_MS(x)   ((x) * 60UL * 1000UL)
+#define ARIDLINK_HOUR_TO_MS(x)  ((x) * 3600UL * 1000UL)
 
 #endif // ARIDLINK_COMMON_H
