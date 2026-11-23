@@ -143,7 +143,7 @@ LTE_Connect_Status_t lte_connect(void) {
   // wait for modem to get ip or timeout at 10s
   ESP_LOGD(TAG, "Waiting for IP...");
   const EventBits_t bits = xEventGroupWaitBits(
-      s_event_group, GOT_IP_BIT, pdFALSE, pdFALSE, pdMS_TO_TICKS(SECONDS(10)));
+      s_event_group, GOT_IP_BIT, pdFALSE, pdFALSE, pdMS_TO_TICKS(ARIDLINK_SEC_TO_MS(10)));
   if (bits & GOT_IP_BIT) {
     ESP_LOGI(TAG, "IP received successfully!");
   } else {
