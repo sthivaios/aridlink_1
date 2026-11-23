@@ -1,7 +1,6 @@
 set(srcs
         "main.c"
         "scheduler.c"
-        "lte.c"
         "fetch_task.c"
         "alim.c"
         "valve_control.c"
