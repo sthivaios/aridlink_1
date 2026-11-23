@@ -23,8 +23,8 @@
 #include "esp_log.h"
 #include "esp_modem_api.h"
 #include "esp_netif.h"
-#include "fetch_task.h"
 #include "freertos/event_groups.h"
+#include "aridlink_common.h"
 
 #define MAX_MODEM_CONTACT_ATTEMPTS 5
 
@@ -32,8 +32,7 @@ static const char *TAG = "lte";
 static EventGroupHandle_t s_event_group;
 static const int GOT_IP_BIT = BIT0;
 
-esp_modem_dce_t *dce;
-
+static esp_modem_dce_t *dce;
 esp_modem_dce_t *get_dce() { return dce; }
 
 static void on_ip_event(void *arg, esp_event_base_t base, int32_t event_id,
@@ -80,30 +79,28 @@ void modem_wakeup_or_sleep(const bool wakeup) {
 }
 
 void lte_init(void) {
-  ESP_LOGI(TAG, "Hello from inside the lte_connect() function");
-
-  ESP_LOGI(TAG, "Created event group");
+  ESP_LOGD(TAG, "Created event group");
   s_event_group = xEventGroupCreate();
 
-  ESP_LOGI(TAG, "Setup configs");
+  ESP_LOGD(TAG, "Setup configs");
   esp_netif_config_t netif_cfg = ESP_NETIF_DEFAULT_PPP();
 
-  ESP_LOGI(TAG, "Create network interface");
+  ESP_LOGD(TAG, "Create network interface");
   esp_netif_t *netif = esp_netif_new(&netif_cfg);
 
-  ESP_LOGI(TAG, "Setup DTE config");
+  ESP_LOGD(TAG, "Setup DTE config");
   esp_modem_dte_config_t dte_config = ESP_MODEM_DTE_DEFAULT_CONFIG();
   dte_config.uart_config.tx_io_num = 16;
   dte_config.uart_config.rx_io_num = 15;
   dte_config.uart_config.baud_rate = 115200;
 
-  ESP_LOGI(TAG, "Create DCE config");
+  ESP_LOGD(TAG, "Create DCE config");
   esp_modem_dce_config_t dce_config = ESP_MODEM_DCE_DEFAULT_CONFIG("internet");
 
-  ESP_LOGI(TAG, "Register event handler");
+  ESP_LOGD(TAG, "Register event handler");
   esp_event_handler_register(IP_EVENT, ESP_EVENT_ANY_ID, on_ip_event, NULL);
 
-  ESP_LOGI(TAG, "Create new modem object");
+  ESP_LOGD(TAG, "Create new modem object");
   dce =
       esp_modem_new_dev(ESP_MODEM_DCE_SIM7600, &dte_config, &dce_config, netif);
 }
@@ -113,7 +110,7 @@ LTE_Connect_Status_t lte_connect(void) {
   xEventGroupClearBits(s_event_group, GOT_IP_BIT);
 
   // buffer to store the imei in
-  ESP_LOGI(TAG, "Create IMEI char buffer");
+  ESP_LOGD(TAG, "Create IMEI char buffer");
   char imei[32];
 
   // try to connect to the modem module itself with a MAX_MODEM_CONTACT_ATTEMPTS limit
@@ -144,7 +141,7 @@ LTE_Connect_Status_t lte_connect(void) {
   }
 
   // wait for modem to get ip or timeout at 10s
-  ESP_LOGI(TAG, "Waiting for IP...");
+  ESP_LOGD(TAG, "Waiting for IP...");
   const EventBits_t bits = xEventGroupWaitBits(
       s_event_group, GOT_IP_BIT, pdFALSE, pdFALSE, pdMS_TO_TICKS(SECONDS(10)));
   if (bits & GOT_IP_BIT) {
