@@ -20,9 +20,6 @@
 #ifndef ARIDLINK_FETCH_TASK_H
 #define ARIDLINK_FETCH_TASK_H
 
-#define SECONDS(x) ((x) * 1000)
-#define HOURS(x) ((x) * 3600 * 1000)
-
 void fetch_task(void *pvParameters);
 
 #endif // ARIDLINK_FETCH_TASK_H
