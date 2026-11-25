@@ -25,6 +25,7 @@
 #include "esp_task_wdt.h"
 #include "lte.h"
 #include "scheduler.h"
+#include "aridlink_common.h"
 
 static const char *TAG = "fetch_task";
 
@@ -62,7 +63,7 @@ void fetch_task(void *pvParameters) {
     esp_task_wdt_add(nullptr);
 
     // default delay till the next fetch is 10s
-    uint64_t next_delay_ms = SECONDS(2);
+    uint64_t next_delay_ms = ARIDLINK_SEC_TO_MS(2);
 
     // wake the modem up
     modem_wakeup_or_sleep(true);
@@ -71,7 +72,7 @@ void fetch_task(void *pvParameters) {
     ESP_LOGI(TAG, "Calling lte_connect()");
     if (lte_connect() != LTE_CONNECTED_SUCCESSFULLY) {
       ESP_LOGW(TAG, "Skipping this fetch attempt. Retrying in 10 seconds.");
-      next_delay_ms = SECONDS(10);
+      next_delay_ms = ARIDLINK_SEC_TO_MS(10);
       goto cleanup;
     }
 
@@ -92,7 +93,7 @@ void fetch_task(void *pvParameters) {
     if (alim_response != ESP_OK) {
       ESP_LOGE(TAG, "Failed to fetch schedule from ALIM with HTTP error code \"%d\". Refer to the ALIM documentation.", status_code);
       ESP_LOGW(TAG, "Skipping this fetch attempt. Retrying in 10 seconds.");
-      next_delay_ms = SECONDS(10);
+      next_delay_ms = ARIDLINK_SEC_TO_MS(10);
       goto cleanup;
     }
 
